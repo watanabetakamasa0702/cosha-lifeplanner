@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ライフプランシミュレーション v0.17</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--navy:#14213d;--accent:#b88968;--bad:#b91c1c;--good:#166534;--shadow:0 20px 60px rgba(17,24,39,.08)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fbfbfc,#f3f4f6);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;align-items:center;gap:14px}.logo{width:44px;height:44px;border-radius:14px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;letter-spacing:.04em}.eyebrow{color:var(--accent);font-weight:700;font-size:13px}.title{font-size:34px;line-height:1.1;margin:6px 0 0}.sub{color:var(--muted);margin-top:10px}.wrap{max-width:1280px;margin:0 auto;padding:0 28px 40px;display:grid;grid-template-columns:390px 1fr;gap:22px;height:calc(100vh - 170px)}.panel,.card{background:rgba(255,255,255,.9);border:1px solid rgba(229,231,235,.9);border-radius:24px;box-shadow:var(--shadow)}.panel{padding:20px;height:100%;overflow-y:auto}.section{border-top:1px solid var(--line);padding-top:18px;margin-top:18px} details{border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0;background:#fff} summary{cursor:pointer;font-weight:800;color:var(--navy);list-style:none} summary::-webkit-details-marker{display:none}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 12px}.miniTotal{display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px;font-size:13px}.miniTotal b{font-size:16px}.section:first-child{border-top:0;margin-top:0;padding-top:0}h2{font-size:16px;margin:0 0 14px}label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:12px}input,select{width:100%;border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:#fff;font-size:14px;color:var(--ink)}input:focus{outline:2px solid rgba(184,137,104,.25);border-color:var(--accent)}button{border:0;border-radius:14px;padding:12px 14px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer}button.secondary{background:#fff;color:var(--navy);border:1px solid var(--line)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.wide{grid-column:1/-1}.smallBtn{padding:9px 10px;font-size:12px;border-radius:12px}.estimateBox{background:#f9fafb;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px;font-size:13px;line-height:1.7}.estimateBox b{font-size:18px;color:var(--navy)}.main{display:flex;flex-direction:column;gap:18px;height:100%;overflow-y:auto;padding-right:4px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.metric{padding:18px}.metric .k{color:var(--muted);font-size:12px}.metric .v{font-size:24px;font-weight:800;margin-top:8px}.metric .note{font-size:12px;color:var(--muted);margin-top:6px}.card{padding:20px}.card h3{margin:0 0 12px;font-size:18px}.chartBox{height:300px}.chartBox.small{height:250px}.chartScroll{overflow-x:auto;overflow-y:hidden;padding-bottom:8px}.chartInner{height:100%;min-width:100%}.chartInner canvas{display:block;width:100%!important;height:100%!important}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.comment{background:#f9fafb;border:1px solid var(--line);border-radius:18px;padding:16px;line-height:1.8}.tableWrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:700}.good{color:var(--good);font-weight:700}.bad{color:var(--bad);font-weight:700}.pill{display:inline-flex;gap:8px;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px;color:var(--muted)}.oneTimeRow{display:grid;grid-template-columns:88px 1fr 1fr 1fr;grid-template-areas:"age name name del" "income income expense expense";gap:10px;align-items:end;margin-bottom:12px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}.oneTimeRow .field{margin-bottom:0}.oneTimeRow .eventAgeField{grid-area:age}.oneTimeRow .eventNameField{grid-area:name}.oneTimeRow .eventIncomeField{grid-area:income}.oneTimeRow .eventExpenseField{grid-area:expense}.oneTimeRow button{grid-area:del;padding:10px 12px;background:#fff;color:var(--bad);border:1px solid var(--line);white-space:nowrap}
+
+.familyRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.childRow{display:grid;grid-template-columns:1fr 88px 1fr auto;gap:10px;align-items:end;margin-bottom:10px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.childRow .field{margin-bottom:0}.childRow button{background:#fff;color:var(--bad);border:1px solid var(--line);padding:10px 12px;white-space:nowrap}
+.familyMini{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+.familyTable td,.familyTable th{text-align:left}.familyTable td:last-child,.familyTable th:last-child{text-align:right}
+@media(max-width:620px){.childRow{grid-template-columns:1fr 1fr;}.childRow button{grid-column:1/-1}.familyRow{grid-template-columns:1fr}}
+.monthlyCards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.monthlyCard{padding:20px}
+.monthlyCard .big{font-size:32px;font-weight:900;margin:6px 0 12px;color:var(--navy)}
+.breakdown{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:7px;font-size:13px}
+.breakdown .line{display:flex;justify-content:space-between;gap:12px;color:var(--muted)}
+.breakdown .line b{color:var(--ink)}
+.breakdown .total{border-top:1px solid var(--line);padding-top:8px;margin-top:3px;color:var(--ink);font-weight:800}
+@media(max-width:780px){.monthlyCards{grid-template-columns:1fr}}
+@media(max-width:620px){.oneTimeRow{grid-template-columns:1fr 1fr;grid-template-areas:"age name" "income expense" "del del"}}.cfControls{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}.cfToggle{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;color:var(--muted);user-select:none}.cfToggle input{width:auto;margin:0}.timeline{display:flex;gap:10px;overflow:auto;padding-bottom:4px}.event{min-width:150px;background:#f9fafb;border:1px solid var(--line);border-radius:16px;padding:12px}.event .age{font-weight:800;color:var(--navy)}.event .name{font-size:13px;color:var(--muted);margin-top:4px}@media(max-width:980px){.wrap{grid-template-columns:1fr}.panel{position:static}.summary,.row{grid-template-columns:1fr 1fr}}@media(max-width:620px){.summary,.row,.grid2{grid-template-columns:1fr}.title{font-size:27px}}
+@media print{body{background:#fff}.panel,.actions,.noPrint{display:none}.wrap{display:block;padding:0}.card,.metric{box-shadow:none;break-inside:avoid}.summary{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">c</div><div><div class="eyebrow">cosha Life Design</div><h1 class="title">ライフプランシミュレーション</h1><div class="sub">住宅購入後の暮らしを、数字で見える化。</div></div></div>
+</header>
+<div class="wrap">
+  <aside class="panel">
+    <div class="section"><h2>家族構成</h2>
+      <div class="grid2">
+        <div class="field"><label>世帯主 氏名</label><input id="ownerName" type="text" value="山田 太郎"></div>
+        <div class="field"><label>世帯主 生年月日</label><input id="ownerDob" type="date" value="1991-01-01"></div>
+        <div class="field"><label>世帯主 職業</label><input id="ownerJob" type="text" value="会社員"></div>
+        <div class="field"><label>配偶者 氏名</label><input id="spouseName" type="text" value="山田 花子"></div>
+        <div class="field"><label>配偶者 生年月日</label><input id="spouseDob" type="date" value="1993-01-01"></div>
+        <div class="field"><label>配偶者 職業</label><input id="spouseJob" type="text" value="会社員"></div>
+      </div>
+      <details open><summary>子ども</summary>
+        <div class="hint">お子様の年齢から、入学イベントをタイムラインに自動表示します。</div>
+        <div id="childList">
+          <div class="childRow">
+            <div class="field"><label>名前</label><input class="childName" type="text" value="一郎"></div>
+            <div class="field"><label>続柄</label><input class="childRelation" type="text" value="長男"></div>
+            <div class="field"><label>生年月日</label><input class="childDob" type="date" value="2021-04-01"></div>
+            <button type="button" onclick="removeChild(this)">削除</button>
+          </div>
+        </div>
+        <button type="button" class="secondary wide" onclick="addChild()">＋ 子どもを追加</button>
+      </details>
+      <div class="familyMini" id="familyMini">-</div>
+    </div>
+    <div class="section"><h2>基本情報</h2><div class="grid2"><div class="field"><label>現在年齢</label><input id="age" type="number" value="35"></div><div class="field"><label>シミュレーション終了年齢</label><input id="endAge" type="number" value="85"></div><div class="field"><label>退職年齢</label><input id="retireAge" type="number" value="65"></div><div class="field"><label>年金開始年齢</label><input id="pensionAge" type="number" value="65"></div></div></div>
+    <div class="section"><h2>収入・支出</h2><div class="grid2"><div class="field"><label>世帯主 年収（万円）</label><input id="income" type="number" value="500"></div><div class="field"><label>配偶者 年収（万円）</label><input id="spouseIncome" type="number" value="150"></div><div class="field"><label>毎月手取り収入（万円/月）</label><input id="monthlyTakeHome" type="number" value="40" step="0.1"></div><div class="field"><label>昇給率（%）</label><input id="raise" type="number" value="1" step="0.1"></div><div class="field"><label>退職後年金（万円/年）</label><input id="pension" type="number" value="270"></div><div class="field"><label>その他収入（万円/年）</label><input id="otherIncome" type="number" value="0"></div><div class="field wide"><div class="hint">年収は年単位のライフプラン用。毎月の家計収支は「毎月手取り収入」を使って計算します。</div></div><div class="field"><label>現在貯蓄（万円）</label><input id="cash" type="number" value="500"></div><div class="field"><label>現在家賃/月（万円）</label><input id="rent" type="number" value="8"></div></div>
+      <details open><summary>生活費の内訳</summary><div class="hint">分かる範囲だけ入力。合計が年間キャッシュフローに反映されます。</div><div class="grid2"><div class="field"><label>食費/月</label><input id="food" type="number" value="8"></div><div class="field"><label>水道光熱費/月</label><input id="utilities" type="number" value="3"></div><div class="field"><label>通信費/月</label><input id="comm" type="number" value="2"></div><div class="field"><label>保険料/月</label><input id="insurance" type="number" value="2"></div><div class="field"><label>教育・子供費/月</label><input id="education" type="number" value="3"></div><div class="field"><label>車両費/月</label><input id="car" type="number" value="4"></div><div class="field"><label>趣味・旅行/月</label><input id="leisure" type="number" value="2"></div><div class="field"><label>その他支出/月</label><input id="otherExpense" type="number" value="1"></div></div><div class="miniTotal"><span>生活費合計/月</span><b id="livingTotal">25万円</b></div></details>
+    </div>
+    <div class="section"><h2>住宅購入</h2><div class="grid2"><div class="field"><label>物件価格（万円）</label><input id="price" type="number" value="3200"></div><div class="field"><label>諸費用（万円）</label><input id="cost" type="number" value="250"></div><div class="field"><label>リフォーム/家具（万円）</label><input id="reno" type="number" value="200"></div><div class="field"><label>頭金（万円）</label><input id="down" type="number" value="300"></div><div class="field"><label>借入額（万円）</label><input id="borrow" type="number" value="3350"></div><div class="field"><label>金利（%）</label><input id="rate" type="number" value="1.2" step="0.01"></div><div class="field"><label>返済期間（年）</label><input id="term" type="number" value="35"></div><div class="field"><label>固定資産税/年（万円）</label><input id="tax" type="number" value="12"></div><div class="field"><label>管理・修繕/月（万円）</label><input id="maint" type="number" value="0"></div><div class="field"><label>火災保険（5年一括・万円）</label><input id="fireInsurance" type="number" value="15"></div></div><div class="hint">火災保険は5年一括として、年間支出には 1/5 を反映します。</div></div>
+    <div class="section"><h2>資産形成</h2>
+      <details open><summary>NISA</summary><div class="hint">住宅購入後も積立を続けた場合の金融資産推移に反映します。</div><div class="grid2"><div class="field"><label>現在NISA残高（万円）</label><input id="nisaNow" type="number" value="100"></div><div class="field"><label>積立/月（万円）</label><input id="nisaMonthly" type="number" value="3"></div><div class="field"><label>想定利回り（%）</label><input id="nisaRate" type="number" value="5" step="0.1"></div><div class="field"><label>積立終了年齢</label><input id="nisaEnd" type="number" value="65"></div></div></details>
+      <details open><summary>iDeCo</summary><div class="hint">原則60歳まで引き出せない前提の参考シミュレーションです。</div><div class="grid2"><div class="field"><label>現在iDeCo残高（万円）</label><input id="idecoNow" type="number" value="0"></div><div class="field"><label>掛金/月（万円）</label><input id="idecoMonthly" type="number" value="1"></div><div class="field"><label>想定利回り（%）</label><input id="idecoRate" type="number" value="5" step="0.1"></div><div class="field"><label>受取開始年齢</label><input id="idecoReceiveAge" type="number" value="60"></div></div></details>
+      <details><summary>その他金融資産</summary><div class="hint">NISA・iDeCo以外の投資信託、株式、その他資産をまとめて入力します。</div><div class="grid2"><div class="field"><label>投資信託（万円）</label><input id="fundNow" type="number" value="0"></div><div class="field"><label>株式（万円）</label><input id="stockNow" type="number" value="0"></div><div class="field"><label>その他資産（万円）</label><input id="otherAssetNow" type="number" value="0"></div><div class="field"><label>想定利回り（%）</label><input id="otherAssetRate" type="number" value="3" step="0.1"></div></div></details>
+      <div class="miniTotal"><span>現在の金融資産合計</span><b id="financialTotal">100万円</b></div>
+    </div>
+
+    <div class="section"><h2>ライフイベント</h2>
+      <div class="hint">退職金・車購入・リフォームなど、一度だけ発生する収入/支出を入力。金額は万円です。</div>
+      <div id="oneTimeList">
+        <div class="oneTimeRow">
+          <div class="field eventAgeField"><label>年齢</label><input class="eventAge" type="number" value="65"></div>
+          <div class="field eventNameField"><label>内容</label><input class="eventName" type="text" value="退職金"></div>
+          <div class="field eventIncomeField"><label>ライフイベント収入（万円）</label><input class="eventIncome" type="number" value="1000"></div>
+          <div class="field eventExpenseField"><label>ライフイベント費用（万円）</label><input class="eventExpense" type="number" value="0"></div>
+          <button type="button" onclick="removeOneTime(this)">削除</button>
+        </div>
+        <div class="oneTimeRow">
+          <div class="field eventAgeField"><label>年齢</label><input class="eventAge" type="number" value="45"></div>
+          <div class="field eventNameField"><label>内容</label><input class="eventName" type="text" value="車買い替え"></div>
+          <div class="field eventIncomeField"><label>ライフイベント収入（万円）</label><input class="eventIncome" type="number" value="0"></div>
+          <div class="field eventExpenseField"><label>ライフイベント費用（万円）</label><input class="eventExpense" type="number" value="300"></div>
+          <button type="button" onclick="removeOneTime(this)">削除</button>
+        </div>
+      </div>
+      <button type="button" class="secondary wide" onclick="addOneTime()">＋ ライフイベントを追加</button>
+    </div>
+    <div class="actions"><button onclick="run()">再計算</button><button class="secondary" onclick="window.print()">PDF保存</button></div>
+  </aside>
+  <main class="main">
+    <div class="monthlyCards">
+      <div class="card monthlyCard">
+        <div class="k">🏠 月々の住宅費</div>
+        <div class="big" id="monthlyHousingTotal">-</div>
+        <div class="breakdown">
+          <div class="line"><span>住宅ローン</span><b id="mhLoan">-</b></div>
+          <div class="line"><span>管理・修繕</span><b id="mhMaint">-</b></div>
+          <div class="line"><span>固定資産税（月割）</span><b id="mhTax">-</b></div>
+          <div class="line"><span>火災保険（月割）</span><b id="mhFire">-</b></div>
+          <div class="line total"><span>合計</span><b id="mhTotal2">-</b></div>
+        </div>
+      </div>
+      <div class="card monthlyCard">
+        <div class="k">💰 毎月の家計収支</div>
+        <div class="big" id="monthlyCF">-</div>
+        <div class="breakdown">
+          <div class="line"><span>毎月手取り収入</span><b id="miIncome">-</b></div>
+          <div class="line"><span>住宅費</span><b id="miHousing">-</b></div>
+          <div class="line"><span>生活費</span><b id="miLiving">-</b></div>
+          <div class="line"><span>NISA/iDeCo</span><b id="miInvestment">-</b></div>
+          <div class="line total"><span>毎月収支</span><b id="miTotal2">-</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><h3>家族構成</h3><div class="tableWrap"><table class="familyTable" id="familyTable"></table></div></div>
+    <div class="summary">
+      <div class="card metric"><div class="k">月々返済</div><div class="v" id="mPay">-</div><div class="note">元利均等</div></div>
+      <div class="card metric"><div class="k">65歳時点 金融資産</div><div class="v" id="fin65">-</div><div class="note">現預金・NISA・iDeCo等の合計</div></div>
+      <div class="card metric"><div class="k">住宅ローン完済年齢</div><div class="v" id="loanEndAge">-</div><div class="note">借入期間から算出</div></div>
+      <div class="card metric"><div class="k">最終年齢時点 金融資産</div><div class="v" id="finEnd">-</div><div class="note">不動産価値は含みません</div></div>
+    </div>
+    <div class="card"><h3>65歳時点の金融資産</h3><div class="breakdown forecastBreakdown">
+      <div class="line"><span>現預金</span><b id="bdCash65">-</b></div>
+      <div class="line"><span>NISA</span><b id="bdNisa65">-</b></div>
+      <div class="line"><span>iDeCo</span><b id="bdIdeco65">-</b></div>
+      <div class="line"><span>その他金融資産</span><b id="bdOther65">-</b></div>
+      <div class="line total"><span>金融資産合計</span><b id="bdFin65">-</b></div>
+    </div><div class="hint">不動産の将来価値は市場環境や建物状態により変動するため、本シミュレーションの金融資産には含めていません。</div></div>
+    <div class="card"><h3>シミュレーション結果のポイント</h3><div class="comment" id="comment"></div></div>
+    <div class="card"><h3>金融資産・住宅ローン推移</h3><div class="chartBox"><canvas id="assetChart"></canvas></div></div>
+    <div class="row"><div class="card"><h3>現預金推移</h3><div class="chartBox small"><canvas id="cashChart"></canvas></div></div><div class="card"><h3>金融資産推移</h3><div class="chartBox small"><canvas id="nisaChart"></canvas></div></div></div>
+    <div class="card"><h3>全体キャッシュフロー</h3><div class="cfControls" id="cfControls">
+      <label class="cfToggle"><input type="checkbox" data-cf="ownerIncome" checked>世帯主給与</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="spouseIncome" checked>配偶者給与</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="pensionIncome" checked>年金</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="otherIncome" checked>その他収入</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="oneTimeIncome" checked>ライフイベント収入</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="living" checked>生活費</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="houseCost" checked>住宅費</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="investment" checked>NISA/iDeCo</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="oneTimeExpense" checked>ライフイベント費用</label>
+    </div><div class="chartBox chartScroll"><div id="cashflowChartInner" class="chartInner"><canvas id="cashflowChart"></canvas></div></div></div>
+    <div class="card"><h3>ライフイベント</h3><div class="timeline" id="timeline"></div></div>
+    <div class="card"><h3>年間キャッシュフロー</h3><div class="tableWrap"><table id="cfTable"></table></div></div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let charts=[]; const yen=v=> Math.round(v).toLocaleString()+"万円"; const val=id=>parseFloat(document.getElementById(id).value)||0;
+function loanPayment(principal, annualRate, years){const r=annualRate/100/12,n=years*12;if(r===0)return principal/n;return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)}
+function loanBalance(principal, annualRate, years, paidMonths){const r=annualRate/100/12,n=years*12,p=loanPayment(principal,annualRate,years);if(paidMonths>=n)return 0;if(r===0)return Math.max(0,principal-p*paidMonths);return Math.max(0,principal*Math.pow(1+r,paidMonths)-p*(Math.pow(1+r,paidMonths)-1)/r)}
+
+
+function calcAgeFromDob(dob, asOf=new Date()){
+ if(!dob) return null;
+ const d=new Date(dob+'T00:00:00'); if(isNaN(d)) return null;
+ let age=asOf.getFullYear()-d.getFullYear();
+ const m=asOf.getMonth()-d.getMonth();
+ if(m<0 || (m===0 && asOf.getDate()<d.getDate())) age--;
+ return age;
+}
+function getChildren(){return [...document.querySelectorAll('.childRow')].map(row=>({name:row.querySelector('.childName')?.value||'',relation:row.querySelector('.childRelation')?.value||'',dob:row.querySelector('.childDob')?.value||''})).filter(c=>c.name||c.relation||c.dob);}
+function addChild(){const list=document.getElementById('childList'); const div=document.createElement('div'); div.className='childRow'; div.innerHTML=`<div class="field"><label>名前</label><input class="childName" type="text" value=""></div><div class="field"><label>続柄</label><input class="childRelation" type="text" value=""></div><div class="field"><label>生年月日</label><input class="childDob" type="date" value=""></div><button type="button" onclick="removeChild(this)">削除</button>`; list.appendChild(div); div.querySelectorAll('input').forEach(el=>el.addEventListener('input',run)); run();}
+function removeChild(btn){btn.closest('.childRow')?.remove(); run();}
+function getFamily(){
+ const today=new Date();
+ return {
+  owner:{name:document.getElementById('ownerName')?.value||'世帯主',relation:'世帯主',dob:document.getElementById('ownerDob')?.value||'',age:calcAgeFromDob(document.getElementById('ownerDob')?.value,today),job:document.getElementById('ownerJob')?.value||''},
+  spouse:{name:document.getElementById('spouseName')?.value||'配偶者',relation:'配偶者',dob:document.getElementById('spouseDob')?.value||'',age:calcAgeFromDob(document.getElementById('spouseDob')?.value,today),job:document.getElementById('spouseJob')?.value||''},
+  children:getChildren().map(c=>({...c,age:calcAgeFromDob(c.dob,today),job:''}))
+ };
+}
+function syncAgeFromOwnerDob(){const a=calcAgeFromDob(document.getElementById('ownerDob')?.value); if(a!==null){const ageInput=document.getElementById('age'); if(ageInput && (!ageInput.dataset.userEdited || ageInput.dataset.userEdited==='dob')){ageInput.value=a; ageInput.dataset.userEdited='dob';}}}
+function renderFamily(){const fam=getFamily(); const members=[fam.owner]; if(fam.spouse.name||fam.spouse.dob||fam.spouse.job) members.push(fam.spouse); fam.children.forEach(c=>members.push({...c,job:''}));
+ const table=document.getElementById('familyTable'); if(table){table.innerHTML='<tr><th>名前</th><th>続柄</th><th>年齢</th><th>職業</th></tr>'+members.map(m=>`<tr><td>${m.name||'-'}</td><td>${m.relation||'-'}</td><td>${m.age!==null?m.age+'歳':'-'}</td><td>${m.job||'-'}</td></tr>`).join('');}
+ const mini=document.getElementById('familyMini'); if(mini){mini.textContent=`世帯主 ${fam.owner.age!==null?fam.owner.age+'歳':'-'} ／ 配偶者 ${fam.spouse.age!==null?fam.spouse.age+'歳':'-'} ／ 子ども ${fam.children.length}人`;}
+}
+function childSchoolEvents(){const ownerAge=val('age'); const out=[]; getFamily().children.forEach(c=>{if(c.age===null) return; const label=(c.relation||c.name||'子ども'); [[6,'小学校入学'],[12,'中学校入学'],[15,'高校入学'],[18,'大学入学']].forEach(([target,name])=>{const at=ownerAge+(target-c.age); if(at>=ownerAge && at<=val('endAge')) out.push([`${label} ${name}`,at]);});}); return out;}
+
+function getOneTimeEvents(){return [...document.querySelectorAll('.oneTimeRow')].map(row=>({age:parseFloat(row.querySelector('.eventAge')?.value)||0,name:row.querySelector('.eventName')?.value||'ライフイベント',income:parseFloat(row.querySelector('.eventIncome')?.value)||0,expense:parseFloat(row.querySelector('.eventExpense')?.value)||0})).filter(e=>e.age>0&&(e.income||e.expense||e.name));}
+function addOneTime(){const list=document.getElementById('oneTimeList'); const div=document.createElement('div'); div.className='oneTimeRow'; div.innerHTML=`<div class="field eventAgeField"><label>年齢</label><input class="eventAge" type="number" value=""></div><div class="field eventNameField"><label>内容</label><input class="eventName" type="text" value=""></div><div class="field eventIncomeField"><label>ライフイベント収入（万円）</label><input class="eventIncome" type="number" value="0"></div><div class="field eventExpenseField"><label>ライフイベント費用（万円）</label><input class="eventExpense" type="number" value="0"></div><button type="button" onclick="removeOneTime(this)">削除</button>`; list.appendChild(div); div.querySelectorAll('input').forEach(el=>el.addEventListener('input',run));}
+function removeOneTime(btn){btn.closest('.oneTimeRow')?.remove(); run();}
+
+
+function simulate(){
+ const age=val('age'),endAge=val('endAge'),retire=val('retireAge'),pAge=val('pensionAge');
+ const ownerIncome0=val('income'),spouseIncome0=val('spouseIncome'),raise=val('raise')/100,pension=val('pension'),otherIncomeBase=val('otherIncome'),cash0=val('cash'),living=(val('food')+val('utilities')+val('comm')+val('insurance')+val('education')+val('car')+val('leisure')+val('otherExpense'))*12,rent=val('rent')*12;
+ const price=val('price'),cost=val('cost'),reno=val('reno'),down=val('down'),rate=val('rate'),term=val('term'),tax=val('tax'),maint=val('maint')*12,fireInsurance=val('fireInsurance'),fireAnnual=fireInsurance/5;
+ const oneTimeEvents=getOneTimeEvents();
+ const nisaNow=val('nisaNow'),nisaM=val('nisaMonthly')*12,nisaRate=val('nisaRate')/100,nisaEnd=val('nisaEnd');
+ const idecoNow=val('idecoNow'),idecoM=val('idecoMonthly')*12,idecoRate=val('idecoRate')/100,idecoReceiveAge=val('idecoReceiveAge');
+ const otherAssetNow=val('fundNow')+val('stockNow')+val('otherAssetNow'),otherAssetRate=val('otherAssetRate')/100;
+ const borrowInput=val('borrow'); const borrow=Math.max(0, borrowInput || (price+reno+cost-down)); const mpay=loanPayment(borrow,rate,term);
+ let cashBuy=cash0-down, cashRent=cash0, nisa=nisaNow, ideco=idecoNow, otherAsset=otherAssetNow, rows=[];
+ let data={ages:[],cashBuy:[],cashRent:[],nisa:[],ideco:[],otherAsset:[],financial:[],loan:[],estate:[],netBuy:[],netRent:[],cf:{ownerIncome:[],spouseIncome:[],pensionIncome:[],otherIncome:[],oneTimeIncome:[],living:[],houseCost:[],investment:[],oneTimeExpense:[],annualCF:[]}};
+ for(let y=age;y<=endAge;y++){
+   let i=y-age;
+   let ownerIncome=y<retire?ownerIncome0*Math.pow(1+raise,i):0;
+   let spouseIncome=y<retire?spouseIncome0*Math.pow(1+raise,i):0;
+   let pensionIncome=y>=pAge?pension:0;
+   let otherInc=otherIncomeBase;
+   let inc=ownerIncome+spouseIncome+pensionIncome+otherInc;
+   let loan=loanBalance(borrow,rate,term,i*12);
+   let houseCost=(loan>0?mpay*12:0)+tax+maint+fireAnnual;
+   let nisaAdd=y<=nisaEnd?nisaM:0;
+   let idecoAdd=y<idecoReceiveAge?idecoM:0;
+   nisa=nisa*(1+nisaRate)+nisaAdd;
+   ideco=ideco*(1+idecoRate)+idecoAdd;
+   otherAsset=otherAsset*(1+otherAssetRate);
+   let financial=nisa+ideco+otherAsset;
+   let investmentAdd=nisaAdd+idecoAdd;
+   let eventsThisYear=oneTimeEvents.filter(e=>e.age===y);
+   let oneTimeIncome=eventsThisYear.reduce((sum,e)=>sum+e.income,0);
+   let oneTimeExpense=eventsThisYear.reduce((sum,e)=>sum+e.expense,0);
+   let cfBuy=inc+oneTimeIncome-living-houseCost-investmentAdd-oneTimeExpense;
+   let cfRent=inc+oneTimeIncome-living-rent-investmentAdd-oneTimeExpense;
+   cashBuy+=cfBuy; cashRent+=cfRent;
+   let estate=price*Math.pow(.995,i);
+   let netB=cashBuy+financial+estate-loan;
+   let netR=cashRent+financial;
+   data.ages.push(y); data.cashBuy.push(Math.round(cashBuy)); data.cashRent.push(Math.round(cashRent)); data.nisa.push(Math.round(nisa)); data.ideco.push(Math.round(ideco)); data.otherAsset.push(Math.round(otherAsset)); data.financial.push(Math.round(financial)); data.loan.push(Math.round(loan)); data.estate.push(Math.round(estate)); data.netBuy.push(Math.round(netB)); data.netRent.push(Math.round(netR));
+   data.cf.ownerIncome.push(Math.round(ownerIncome)); data.cf.spouseIncome.push(Math.round(spouseIncome)); data.cf.pensionIncome.push(Math.round(pensionIncome)); data.cf.otherIncome.push(Math.round(otherInc)); data.cf.oneTimeIncome.push(Math.round(oneTimeIncome)); data.cf.living.push(-Math.round(living)); data.cf.houseCost.push(-Math.round(houseCost)); data.cf.investment.push(-Math.round(investmentAdd)); data.cf.oneTimeExpense.push(-Math.round(oneTimeExpense)); data.cf.annualCF.push(Math.round(cfBuy));
+   rows.push({age:y,ownerIncome,spouseIncome,pensionIncome,otherIncome:otherInc,income:inc,oneTimeIncome,expense:living,houseCost,oneTimeExpense,nisaAdd,idecoAdd,investmentAdd,cfBuy,cashBuy,loan,financial,netB,eventsThisYear});
+ }
+ return {data,rows,mpay,borrow};
+}
+const CHART_COLORS={
+  // 収入：青系
+  '世帯主給与':'#1d4ed8',
+  '配偶者給与':'#60a5fa',
+  '年金':'#38bdf8',
+  'その他収入':'#93c5fd',
+  'ライフイベント収入':'#0ea5e9',
+  // 支出：赤・オレンジ系
+  '生活費':'#f87171',
+  '住宅費':'#fb923c',
+  'NISA/iDeCo':'#34d399',
+  'ライフイベント費用':'#dc2626',
+  '年間収支':'#374151',
+  // 資産形成：緑系
+  'NISA':'#22c55e',
+  'iDeCo':'#84cc16',
+  'その他金融資産':'#2dd4bf',
+  '金融資産合計':'#15803d',
+  '現預金':'#0f766e',
+  '金融資産':'#16a34a',
+  '住宅ローン残高':'#9ca3af',
+  '今回のシミュレーション':'#1d4ed8'
+};
+function withChartColor(ds){
+  const c=CHART_COLORS[ds.label];
+  if(c){
+    ds.borderColor=ds.borderColor||c;
+    ds.backgroundColor=ds.backgroundColor||c;
+    ds.pointBackgroundColor=ds.pointBackgroundColor||c;
+  }
+  const isLine = ds.type==='line' || ds.showLine || ds.borderWidth;
+  if(isLine){
+    ds.borderWidth = ds.borderWidth ?? 1.8;
+    ds.pointRadius = ds.pointRadius ?? 0;
+    ds.pointHoverRadius = ds.pointHoverRadius ?? 4;
+    ds.tension = ds.tension ?? .22;
+    ds.fill = ds.fill ?? false;
+  }
+  return ds;
+}
+function draw(id,type,labels,datasets,extraOptions={}){const ctx=document.getElementById(id); const colored=datasets.map(d=>withChartColor(d)); const tooltipLabel=extraOptions.tooltipLabel; delete extraOptions.tooltipLabel; const defaultPlugins={legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:12,font:{size:11}}},tooltip:{callbacks:{label:tooltipLabel||((c)=>`${c.dataset.label}: ${yen(c.raw)}`)}}}; const plugins={...defaultPlugins,...(extraOptions.plugins||{})}; charts.push(new Chart(ctx,{type, data:{labels,datasets:colored}, options:{responsive:true,maintainAspectRatio:false,plugins,elements:{line:{borderWidth:1.8},point:{radius:0,hoverRadius:4}},scales:{y:{ticks:{callback:v=>v+'万'}},...(extraOptions.scales||{})},...extraOptions,plugins}}))}
+function cfChecked(key){const el=document.querySelector(`#cfControls input[data-cf="${key}"]`); return !el || el.checked;}
+function cfDataset(label,key,data){return cfChecked(key)?withChartColor({label,data:data.cf[key],borderWidth:0,stack:'cf'}):null;}
+function drawCashflow(data,rows){
+ const inner=document.getElementById('cashflowChartInner');
+ if(inner){ inner.style.width=Math.max(980, data.ages.length*34)+'px'; }
+ const sets=[
+   cfDataset('世帯主給与','ownerIncome',data),
+   cfDataset('配偶者給与','spouseIncome',data),
+   cfDataset('年金','pensionIncome',data),
+   cfDataset('その他収入','otherIncome',data),
+   cfDataset('ライフイベント収入','oneTimeIncome',data),
+   cfDataset('生活費','living',data),
+   cfDataset('住宅費','houseCost',data),
+   cfDataset('NISA/iDeCo','investment',data),
+   cfDataset('ライフイベント費用','oneTimeExpense',data),
+   // 年間収支は棒グラフより前面に出すため、orderを小さくして最後に描画
+   {label:'年間収支',data:data.cf.annualCF,type:'line',borderWidth:1.8,pointRadius:0,pointHoverRadius:4,tension:.22,yAxisID:'y',order:-10,stack:undefined}
+ ].filter(Boolean).map(ds=>{
+   if(ds.label!=='年間収支') ds.order=10;
+   return ds;
+ });
+ const itemLine=(name,value)=> value ? `${name}: ${yen(value)}` : null;
+ const eventLines=(r,type)=>{
+   if(!r?.eventsThisYear?.length) return [];
+   return r.eventsThisYear
+     .filter(e=>type==='income' ? e.income : e.expense)
+     .map(e=>`${type==='income'?'ライフイベント収入':'ライフイベント費用'}（${e.name||'ライフイベント'}）: ${yen(type==='income'?e.income:e.expense)}`);
+ };
+ const tooltipCallbacks={
+   title:(items)=> items?.length ? `${items[0].label}歳` : '',
+   label:()=>null,
+   afterBody:(items)=>{
+     const idx=items?.[0]?.dataIndex ?? 0;
+     const r=rows[idx];
+     if(!r) return [];
+     const lines=[];
+     lines.push('【収入】');
+     [
+       itemLine('世帯主給与',r.ownerIncome),
+       itemLine('配偶者給与',r.spouseIncome),
+       itemLine('年金',r.pensionIncome),
+       itemLine('その他収入',r.otherIncome),
+       ...eventLines(r,'income')
+     ].filter(Boolean).forEach(v=>lines.push(v));
+     lines.push('');
+     lines.push('【支出】');
+     [
+       itemLine('生活費',r.expense),
+       itemLine('住宅費',r.houseCost),
+       itemLine('NISA/iDeCo',r.investmentAdd),
+       ...eventLines(r,'expense')
+     ].filter(Boolean).forEach(v=>lines.push(v));
+     lines.push('');
+     lines.push(`年間収支: ${yen(r.cfBuy)}`);
+     return lines;
+   }
+ };
+ draw('cashflowChart','bar',data.ages,sets,{plugins:{tooltip:{callbacks:tooltipCallbacks}},scales:{x:{stacked:true,ticks:{autoSkip:false,maxRotation:0,minRotation:0}},y:{stacked:true,ticks:{callback:v=>v+'万'}}}});
+}
+function run(){syncAgeFromOwnerDob(); renderFamily(); charts.forEach(c=>c.destroy()); charts=[]; const livingMonth=val('food')+val('utilities')+val('comm')+val('insurance')+val('education')+val('car')+val('leisure')+val('otherExpense'); document.getElementById('livingTotal').textContent=livingMonth.toLocaleString()+'万円'; const financialNow=val('nisaNow')+val('idecoNow')+val('fundNow')+val('stockNow')+val('otherAssetNow'); const ft=document.getElementById('financialTotal'); if(ft) ft.textContent=financialNow.toLocaleString()+'万円'; const {data,rows,mpay,borrow}=simulate();
+ const mhLoan=mpay, mhMaint=val('maint'), mhTax=val('tax')/12, mhFire=val('fireInsurance')/60;
+ const mhTotal=mhLoan+mhMaint+mhTax+mhFire;
+ const current=rows[0]||{};
+ const monthlyIncome=val('monthlyTakeHome');
+ const monthlyLiving=(current.expense||0)/12;
+ const monthlyInvestment=(current.investmentAdd||0)/12;
+ const monthlyCF=monthlyIncome-mhTotal-monthlyLiving-monthlyInvestment;
+ const fmtM=v=>v.toLocaleString(undefined,{maximumFractionDigits:1})+'万円';
+ document.getElementById('monthlyHousingTotal').textContent=fmtM(mhTotal)+'/月';
+ document.getElementById('mhLoan').textContent=fmtM(mhLoan);
+ document.getElementById('mhMaint').textContent=fmtM(mhMaint);
+ document.getElementById('mhTax').textContent=fmtM(mhTax);
+ document.getElementById('mhFire').textContent=fmtM(mhFire);
+ document.getElementById('mhTotal2').textContent=fmtM(mhTotal);
+ document.getElementById('monthlyCF').innerHTML='<span class="'+(monthlyCF>=0?'good':'bad')+'">'+fmtM(monthlyCF)+'/月</span>';
+ document.getElementById('miIncome').textContent=fmtM(monthlyIncome);
+ document.getElementById('miHousing').textContent=fmtM(mhTotal);
+ document.getElementById('miLiving').textContent=fmtM(monthlyLiving);
+ document.getElementById('miInvestment').textContent=fmtM(monthlyInvestment);
+ document.getElementById('miTotal2').innerHTML='<span class="'+(monthlyCF>=0?'good':'bad')+'">'+fmtM(monthlyCF)+'</span>';
+ const last=data.ages.length-1; const idx65=data.ages.indexOf(65); const age65=idx65>=0?idx65:last; const loanEndAge=val('age')+val('term'); document.getElementById('mPay').textContent=mpay.toLocaleString(undefined,{maximumFractionDigits:1})+'万円'; document.getElementById('fin65').textContent=yen(data.financial[age65]??data.financial[last]); document.getElementById('loanEndAge').textContent=loanEndAge+'歳'; document.getElementById('finEnd').textContent=yen(data.financial[last]); document.getElementById('bdCash65').textContent=yen(data.cashBuy[age65]??data.cashBuy[last]); document.getElementById('bdNisa65').textContent=yen(data.nisa[age65]??data.nisa[last]); document.getElementById('bdIdeco65').textContent=yen(data.ideco[age65]??data.ideco[last]); document.getElementById('bdOther65').textContent=yen(data.otherAsset[age65]??data.otherAsset[last]); document.getElementById('bdFin65').textContent=yen(data.financial[age65]??data.financial[last]); const minCash=Math.min(...data.cashBuy); const minIdx=data.cashBuy.indexOf(minCash); const tight=rows[minIdx]; document.getElementById('comment').innerHTML=`借入想定額は <b>${yen(borrow)}</b>、月々返済は <b>${mpay.toLocaleString(undefined,{maximumFractionDigits:1})}万円</b>、火災保険は5年一括 <b>${yen(val('fireInsurance'))}</b> として年割り反映しています。現預金が最も少なくなるのは <b>${tight.age}歳</b> 時点で <b class="${minCash<0?'bad':'good'}">${yen(minCash)}</b>。NISA・iDeCo等を継続した場合、${data.ages[last]}歳時点の金融資産は <b>${yen(data.financial[last])}</b> の試算です。これは想定利回りに基づく参考値で、将来の成果を保証するものではありません。`;
+ draw('assetChart','line',data.ages,[{label:'現預金',data:data.cashBuy,borderWidth:1.6},{label:'金融資産',data:data.financial,borderWidth:1.6},{label:'住宅ローン残高',data:data.loan,borderWidth:1.6}]);
+ draw('cashChart','line',data.ages,[{label:'今回のシミュレーション',data:data.cashBuy,borderWidth:1.8}]);
+ draw('nisaChart','line',data.ages,[{label:'NISA',data:data.nisa,borderWidth:1.8},{label:'iDeCo',data:data.ideco,borderWidth:1.6},{label:'その他金融資産',data:data.otherAsset,borderWidth:1.6},{label:'金融資産合計',data:data.financial,borderWidth:2}]);
+ drawCashflow(data,rows);
+ const fireEvents=[]; for(let a=val('age')+5;a<=val('endAge');a+=5){fireEvents.push(['火災保険更新',a]);} const customEvents=getOneTimeEvents().map(e=>[e.name,e.age]); const schoolEvents=childSchoolEvents(); const ev=[['住宅購入',val('age')],['教育費ピーク',52],['NISA積立終了',val('nisaEnd')],['iDeCo受取開始',val('idecoReceiveAge')],['定年',val('retireAge')],['年金開始',val('pensionAge')],['ローン完済',val('age')+val('term')],...fireEvents,...schoolEvents,...customEvents].filter(e=>e[1]>=val('age')&&e[1]<=val('endAge')).sort((a,b)=>a[1]-b[1]); document.getElementById('timeline').innerHTML=ev.map(e=>`<div class="event"><div class="age">${e[1]}歳</div><div class="name">${e[0]}</div></div>`).join('');
+ document.getElementById('cfTable').innerHTML='<tr><th>年齢</th><th>給与</th><th>年金</th><th>その他/ライフイベント収入</th><th>生活費</th><th>住宅費</th><th>ライフイベント費用</th><th>NISA積立</th><th>iDeCo掛金</th><th>年間収支</th><th>現預金</th><th>金融資産</th><th>残債</th></tr>'+rows.map((r)=> `<tr><td>${r.age}歳</td><td>${yen(r.ownerIncome+r.spouseIncome)}</td><td>${yen(r.pensionIncome)}</td><td>${yen(r.otherIncome+r.oneTimeIncome)}</td><td>${yen(r.expense)}</td><td>${yen(r.houseCost)}</td><td>${yen(r.oneTimeExpense)}</td><td>${yen(r.nisaAdd)}</td><td>${yen(r.idecoAdd)}</td><td class="${r.cfBuy>=0?'good':'bad'}">${yen(r.cfBuy)}</td><td>${yen(r.cashBuy)}</td><td>${yen(r.financial)}</td><td>${yen(r.loan)}</td></tr>`).join('');
+}
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{const livingMonth=val('food')+val('utilities')+val('comm')+val('insurance')+val('education')+val('car')+val('leisure')+val('otherExpense'); const lt=document.getElementById('livingTotal'); if(lt) lt.textContent=livingMonth.toLocaleString()+'万円'; const financialNow=val('nisaNow')+val('idecoNow')+val('fundNow')+val('stockNow')+val('otherAssetNow'); const ft=document.getElementById('financialTotal'); if(ft) ft.textContent=financialNow.toLocaleString()+'万円';}));
+document.getElementById('age')?.addEventListener('input',()=>{document.getElementById('age').dataset.userEdited='manual';});
+document.getElementById('ownerDob')?.addEventListener('input',()=>{document.getElementById('age').dataset.userEdited='dob'; run();});
+document.querySelectorAll('.panel input,.panel select').forEach(el=>el.addEventListener('change',run));
+document.querySelectorAll('#cfControls input[type=checkbox]').forEach(el=>el.addEventListener('change',run));
+run();
+</script>
+</body>
+</html>
