@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ライフプランシミュレーション v0.29</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">c</div><div><div class="eyebrow">cosha Life Design</div><h1 class="title">ライフプランシミュレーション</h1><div class="sub">住宅購入後の暮らしを、数字で見える化。</div></div></div>
+</header>
+<div class="wrap">
+  <aside class="panel">
+    <div class="section"><h2>家族構成</h2>
+      <div class="grid2">
+        <div class="field"><label>世帯主 氏名</label><input id="ownerName" type="text" value="山田 太郎"></div>
+        <div class="field"><label>世帯主 生年月日</label><input id="ownerDob" type="date" value="1991-01-01"></div>
+        <div class="field"><label>世帯主 職業</label><input id="ownerJob" type="text" value="会社員"></div>
+        <div class="field"><label>配偶者 氏名</label><input id="spouseName" type="text" value="山田 花子"></div>
+        <div class="field"><label>配偶者 生年月日</label><input id="spouseDob" type="date" value="1993-01-01"></div>
+        <div class="field"><label>配偶者 職業</label><input id="spouseJob" type="text" value="会社員"></div>
+      </div>
+      <details open><summary>子ども</summary>
+        <div class="hint">お子様の年齢から、入学イベントをタイムラインに自動表示します。</div>
+        <div id="childList">
+          <div class="childRow">
+            <div class="field"><label>名前</label><input class="childName" type="text" value="一郎"></div>
+            <div class="field"><label>続柄</label><input class="childRelation" type="text" value="長男"></div>
+            <div class="field"><label>生年月日</label><input class="childDob" type="date" value="2021-04-01"></div>
+            <button type="button" onclick="removeChild(this)">削除</button>
+          </div>
+        </div>
+        <button type="button" class="secondary wide" onclick="addChild()">＋ 子どもを追加</button>
+      </details>
+      <div class="familyMini" id="familyMini">-</div>
+    </div>
+    <div class="section"><h2>基本情報</h2><div class="grid2"><div class="field"><label>現在年齢</label><input id="age" type="number" value="35"></div><div class="field"><label>シミュレーション終了年齢</label><input id="endAge" type="number" value="85"></div><div class="field"><label>退職年齢</label><input id="retireAge" type="number" value="65"></div><div class="field"><label>年金開始年齢</label><input id="pensionAge" type="number" value="65"></div></div></div>
+    <div class="section"><h2>収入・支出</h2><div class="grid2"><div class="field"><label>世帯主 年収（万円）</label><input id="income" type="number" value="500"></div><div class="field"><label>配偶者 年収（万円）</label><input id="spouseIncome" type="number" value="150"></div><div class="field"><label>毎月手取り収入（万円/月）</label><input id="monthlyTakeHome" type="number" value="40" step="0.1"></div><div class="field"><label>昇給率（%）</label><input id="raise" type="number" value="1" step="0.1"></div><div class="field"><label>退職後年金（万円/年）</label><input id="pension" type="number" value="270"></div><div class="field"><label>その他収入（万円/年）</label><input id="otherIncome" type="number" value="0"></div><div class="field wide"><div class="hint">年収は年単位のライフプラン用。毎月の家計収支は「毎月手取り収入」を使って計算します。</div></div><div class="field"><label>現在貯蓄（万円）</label><input id="cash" type="number" value="500"></div><div class="field"><label>現在家賃/月（万円）</label><input id="rent" type="number" value="8"></div></div>
+      <details open><summary>生活費の内訳</summary><div class="hint">現在の生活費を入力します。将来の生活費は下の「段階変更」で切り替えられます。</div><div class="grid2"><div class="field"><label>食費/月</label><input id="food" type="number" value="8"></div><div class="field"><label>水道光熱費/月</label><input id="utilities" type="number" value="3"></div><div class="field"><label>通信費/月</label><input id="comm" type="number" value="2"></div><div class="field"><label>保険料/月</label><input id="insurance" type="number" value="2"></div><div class="field"><label>教育・子供費/月</label><input id="education" type="number" value="3"></div><div class="field"><label>車両費/月</label><input id="car" type="number" value="4"></div><div class="field"><label>趣味・旅行/月</label><input id="leisure" type="number" value="2"></div><div class="field"><label>その他支出/月</label><input id="otherExpense" type="number" value="1"></div></div><div class="miniTotal"><span>現在の生活費合計/月</span><b id="livingTotal">25万円</b></div></details>
+      <details open><summary>生活費の段階変更 <span class="sectionBadge">年齢で切替</span></summary><div class="hint">例：子どもの大学卒業後、定年後など。開始年齢以降は、ここで指定した月額に切り替わります。</div><div id="livingStageList"><div class="dynamicRow livingStageRow"><div class="field"><label>開始年齢</label><input class="livingStageAge" type="number" value="55"></div><div class="field"><label>生活費/月（万円）</label><input class="livingStageAmount" type="number" value="22" step="0.1"></div><button type="button" onclick="removeLivingStage(this)">削除</button></div><div class="dynamicRow livingStageRow"><div class="field"><label>開始年齢</label><input class="livingStageAge" type="number" value="65"></div><div class="field"><label>生活費/月（万円）</label><input class="livingStageAmount" type="number" value="18" step="0.1"></div><button type="button" onclick="removeLivingStage(this)">削除</button></div></div><button type="button" class="secondary wide" onclick="addLivingStage()">＋ 生活費の変更時期を追加</button></details>
+    </div>
+    <div class="section"><h2>住宅購入</h2>
+      <div class="purchaseTypeBox"><div class="field" style="margin:0"><label>購入形態</label><select id="purchaseType" onchange="updatePurchaseType()"><option value="usedCondo" selected>中古マンション</option><option value="usedHouse">中古戸建</option><option value="builtHouse">建売住宅</option><option value="landOrder">土地＋注文住宅</option></select></div></div>
+      <div class="grid2">
+        <div class="field purchaseFields" data-types="usedCondo,usedHouse,builtHouse"><label>物件価格（万円）</label><input id="price" type="number" value="3200"></div>
+        <div class="field purchaseFields" data-types="landOrder"><label>土地価格（万円）</label><input id="landPrice" type="number" value="1200"></div>
+        <div class="field purchaseFields" data-types="landOrder"><label>建築費（万円）</label><input id="buildingCost" type="number" value="2300"></div>
+        <div class="field"><label>諸費用（万円）</label><input id="cost" type="number" value="250"></div>
+        <div class="field"><label>頭金（万円）</label><input id="down" type="number" value="300"></div><div class="field"><label>借入額（万円）</label><input id="borrow" type="number" value="3150"></div><div class="field"><label>金利（%）</label><input id="rate" type="number" value="1.2" step="0.01"></div><div class="field"><label>返済期間（年）</label><input id="term" type="number" value="35"></div>
+        <div class="field"><label>引越し費用（万円）</label><input id="movingCost" type="number" value="20"></div>
+        <div class="field"><label>固定資産税／年（万円）</label><input id="tax" type="number" value="12"></div><div class="field purchaseFields" data-types="usedCondo"><label>管理費／月（万円）</label><input id="managementFee" type="number" value="1.2" step="0.1"></div><div class="field purchaseFields" data-types="usedCondo"><label>修繕積立金／月（万円）</label><input id="repairReserve" type="number" value="1.3" step="0.1"></div><div class="field"><label>火災保険（5年一括・万円）</label><input id="fireInsurance" type="number" value="15"></div></div>
+      <details open><summary>家具・家電 <span class="sectionBadge">複数追加</span></summary><div class="hint">購入時に必要なものだけ追加します。リフォーム費用とは分けて計算します。</div><div id="furnitureList"><div class="dynamicRow furnitureRow"><div class="field"><label>内容</label><select class="furnitureType"><option>エアコン</option><option>冷蔵庫</option><option>洗濯機</option><option>テレビ</option><option>ソファ</option><option>ダイニングセット</option><option>ベッド</option><option>カーテン</option><option>その他</option></select></div><div class="field"><label>金額（万円）</label><input class="furnitureCost" type="number" value="40"></div><button type="button" onclick="removeFurniture(this)">削除</button></div></div><button type="button" class="secondary wide" onclick="addFurniture()">＋ 家具・家電を追加</button><div class="miniTotal"><span>家具・家電 合計</span><b id="furnitureTotal">40万円</b></div></details>
+      <div class="hint">固定資産税は年4回払いとして扱い、年間キャッシュフローには年額合計を反映します。火災保険は購入年と、その後5年ごとに一括支出として反映します。</div></div>
+    <div class="section"><h2>資産形成</h2>
+      <details open><summary>NISA</summary><div class="hint">住宅購入後も積立を続けた場合の金融資産推移に反映します。取り崩し開始後は、指定額をNISA残高から現預金へ移します。</div><div class="grid2"><div class="field"><label>現在NISA残高（万円）</label><input id="nisaNow" type="number" value="100"></div><div class="field"><label>積立/月（万円）</label><input id="nisaMonthly" type="number" value="3"></div><div class="field"><label>想定利回り（%）</label><input id="nisaRate" type="number" value="5" step="0.1"></div><div class="field"><label>積立終了年齢</label><input id="nisaEnd" type="number" value="65"></div><div class="field"><label>取り崩し開始年齢</label><input id="nisaWithdrawAge" type="number" value="65"></div><div class="field"><label>取り崩し/月（万円）</label><input id="nisaWithdrawMonthly" type="number" value="10" step="0.1"></div><div class="field wide"><label>何歳まで持たせたいか（逆算用）</label><input id="nisaTargetEndAge" type="number" value="90"></div></div><div class="estimateBox"><div>NISA取り崩し開始時点の想定残高</div><b id="nisaStartBalance">-</b><div class="hint" id="nisaWithdrawSummary">毎月取り崩し額を入力すると、何歳頃まで持つかを表示します。</div><div class="hint" id="nisaReverseSummary">目標年齢まで持たせる場合の月額目安を表示します。</div></div></details>
+      <details open><summary>iDeCo</summary><div class="hint">原則60歳以降に受け取る前提の参考シミュレーションです。受取時の税金は考慮していません。</div><div class="grid2"><div class="field"><label>現在iDeCo残高（万円）</label><input id="idecoNow" type="number" value="0"></div><div class="field"><label>掛金/月（万円）</label><input id="idecoMonthly" type="number" value="1"></div><div class="field"><label>想定利回り（%）</label><input id="idecoRate" type="number" value="5" step="0.1"></div><div class="field"><label>受取開始年齢</label><input id="idecoReceiveAge" type="number" value="60"></div><div class="field"><label>受取方法</label><select id="idecoReceiveMethod"><option value="lump">一時金</option><option value="pension" selected>年金形式</option></select></div><div class="field"><label>年金形式の受取期間（年）</label><input id="idecoReceiveYears" type="number" value="10"></div></div><div class="estimateBox"><div>iDeCo受取開始時点の想定残高</div><b id="idecoStartBalance">-</b><div class="hint" id="idecoReceiveSummary">受取方法に応じて、一時金または年金形式の受取額を表示します。</div></div><div class="hint">一時金：受取開始年齢で全額を現預金へ移します。年金形式：指定年数で毎年均等に現預金へ移します。</div></details>
+      <details><summary>その他金融資産</summary><div class="hint">NISA・iDeCo以外の投資信託、株式、その他資産をまとめて入力します。</div><div class="grid2"><div class="field"><label>投資信託（万円）</label><input id="fundNow" type="number" value="0"></div><div class="field"><label>株式（万円）</label><input id="stockNow" type="number" value="0"></div><div class="field"><label>その他資産（万円）</label><input id="otherAssetNow" type="number" value="0"></div><div class="field"><label>想定利回り（%）</label><input id="otherAssetRate" type="number" value="3" step="0.1"></div></div></details>
+      <div class="miniTotal"><span>現在の金融資産合計</span><b id="financialTotal">100万円</b></div>
+    </div>
+
+    <div class="section"><details><summary>リフォーム費用</summary>
+      <div class="hint">将来予定する住宅設備の交換・修繕を追加できます。内容を選ぶと参考金額が入りますが、物件に合わせて自由に修正できます。</div>
+      <div id="renovationList">
+        <div class="renovationRow">
+          <div class="field"><label>実施年齢</label><input class="renovationAge" type="number" value="50"></div>
+          <div class="field"><label>内容</label><select class="renovationType" onchange="applyRenovationEstimate(this)"></select></div>
+          <div class="field"><label>想定費用（万円）</label><input class="renovationCost" type="number" value="25"></div>
+          <button type="button" onclick="removeRenovation(this)">削除</button>
+        </div>
+      </div>
+      <button type="button" class="secondary wide" onclick="addRenovation()">＋ リフォーム費用を追加</button>
+      <div class="tagNote">参考金額は目安です。工事範囲・商品・建物状態で変動します。</div>
+    </details></div>
+    <div class="section"><details><summary>ライフイベント</summary>
+      <div class="hint">退職金・車購入など、リフォーム以外の一度だけ発生する収入・支出を入力します。金額は万円です。</div>
+      <div id="oneTimeList">
+        <div class="oneTimeRow">
+          <div class="field eventAgeField"><label>年齢</label><input class="eventAge" type="number" value="65"></div>
+          <div class="field eventNameField"><label>内容</label><input class="eventName" type="text" value="退職金"></div>
+          <div class="field eventIncomeField"><label>ライフイベント収入（万円）</label><input class="eventIncome" type="number" value="1000"></div>
+          <div class="field eventExpenseField"><label>ライフイベント費用（万円）</label><input class="eventExpense" type="number" value="0"></div>
+          <button type="button" onclick="removeOneTime(this)">削除</button>
+        </div>
+        <div class="oneTimeRow">
+          <div class="field eventAgeField"><label>年齢</label><input class="eventAge" type="number" value="45"></div>
+          <div class="field eventNameField"><label>内容</label><input class="eventName" type="text" value="車買い替え"></div>
+          <div class="field eventIncomeField"><label>ライフイベント収入（万円）</label><input class="eventIncome" type="number" value="0"></div>
+          <div class="field eventExpenseField"><label>ライフイベント費用（万円）</label><input class="eventExpense" type="number" value="300"></div>
+          <button type="button" onclick="removeOneTime(this)">削除</button>
+        </div>
+      </div>
+      <button type="button" class="secondary wide" onclick="addOneTime()">＋ ライフイベントを追加</button>
+    </details></div>
+    
+  
+    <div class="actions"><button onclick="run()">再計算</button><button class="secondary" onclick="openProposalPreview()">提案書プレビュー</button></div>
+<div class="section"><h2>保存データ</h2>
+      <div class="hint">お客様ごとに保存できます。保存先はこのブラウザ内です。</div>
+      <div id="savedPlanList" class="savedPlanList"></div>
+      <div class="saveActions wide"><button type="button" onclick="saveAsNewPlan()">＋ 新規保存</button><button type="button" class="secondary" onclick="overwriteCurrentPlan()">選択中を上書き</button></div>
+      <div class="saveStatus" id="saveStatus">未保存</div>
+    </div>
+</aside>
+  <main class="main">
+    <section class="printOnly printReportHead">
+      <div class="printBrand">
+        <div><div class="printBrandName">cosha Life Design</div><div class="printTitle">ライフプランシミュレーション</div></div>
+        <div class="printMeta"><div id="printClientName">お客様名：-</div><div id="printCreatedAt">作成日：-</div></div>
+      </div>
+      <div class="printLead">
+        <div class="printLeadBox"><span>購入形態</span><b id="printPurchaseType">-</b></div>
+        <div class="printLeadBox"><span>借入予定額</span><b id="printBorrow">-</b></div>
+        <div class="printLeadBox"><span>返済期間・金利</span><b id="printLoanTerms">-</b></div>
+      </div>
+    </section>
+    <div class="monthlyCards">
+      <div class="card monthlyCard">
+        <div class="k">🏠 月々の住宅費</div>
+        <div class="big" id="monthlyHousingTotal">-</div>
+        <div class="breakdown">
+          <div class="line"><span>住宅ローン</span><b id="mhLoan">-</b></div>
+          <div class="line"><span>管理・修繕</span><b id="mhMaint">-</b></div>
+          <div class="line"><span>固定資産税（月額換算・年4回）</span><b id="mhTax">-</b></div>
+          <div class="line"><span>火災保険（5年ごと）</span><b id="mhFire">-</b></div>
+          <div class="line total"><span>通常月の合計</span><b id="mhTotal2">-</b></div>
+        </div>
+      </div>
+      <div class="card monthlyCard">
+        <div class="k">💰 毎月の家計収支</div>
+        <div class="big" id="monthlyCF">-</div>
+        <div class="breakdown">
+          <div class="line"><span>毎月手取り収入</span><b id="miIncome">-</b></div>
+          <div class="line"><span>住宅費</span><b id="miHousing">-</b></div>
+          <div class="line"><span>生活費</span><b id="miLiving">-</b></div>
+          <div class="line"><span>NISA/iDeCo</span><b id="miInvestment">-</b></div>
+          <div class="line total"><span>毎月収支</span><b id="miTotal2">-</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><h3>家族構成</h3><div class="tableWrap"><table class="familyTable" id="familyTable"></table></div></div>
+    <div class="summary">
+      <div class="card metric"><div class="k">月々返済</div><div class="v" id="mPay">-</div><div class="note">元利均等</div></div>
+      <div class="card metric clickable" id="fin65Card"><div class="k">65歳時点 金融資産</div><div class="v" id="fin65">-</div><div class="note">クリックで内訳</div></div>
+      <div class="card metric"><div class="k">住宅ローン完済年齢</div><div class="v" id="loanEndAge">-</div><div class="note">借入期間から算出</div></div>
+      <div class="card metric"><div class="k">最終年齢時点 金融資産</div><div class="v" id="finEnd">-</div><div class="note">不動産価値は含みません</div></div>
+    </div>
+    <div class="modalBackdrop" id="fin65Modal" hidden>
+      <div class="modalCard">
+        <div class="modalHead"><h3>65歳時点の金融資産内訳</h3><button class="modalClose" id="fin65Close" type="button">閉じる</button></div>
+        <div class="breakdown forecastBreakdown">
+          <div class="line"><span>現預金</span><b id="bdCash65">-</b></div>
+          <div class="line"><span>NISA</span><b id="bdNisa65">-</b></div>
+          <div class="line"><span>iDeCo</span><b id="bdIdeco65">-</b></div>
+          <div class="line"><span>その他金融資産</span><b id="bdOther65">-</b></div>
+          <div class="line total"><span>金融資産合計</span><b id="bdFin65">-</b></div>
+        </div>
+        <div class="hint">不動産の将来価値は市場環境や建物状態により変動するため、本シミュレーションの金融資産には含めていません。</div>
+      </div>
+    </div>
+    <div class="card"><h3>シミュレーション結果のポイント</h3><div class="comment" id="comment"></div></div>
+    <div class="card"><h3>金融資産・住宅ローン推移</h3><div class="chartBox"><canvas id="assetChart"></canvas></div></div>
+    <div class="row"><div class="card"><h3>現預金推移</h3><div class="chartBox small"><canvas id="cashChart"></canvas></div></div><div class="card"><h3>金融資産推移</h3><div class="chartBox small"><canvas id="nisaChart"></canvas></div></div></div>
+    <div class="card pageBreakBefore"><h3>全体キャッシュフロー</h3><div class="cfControls" id="cfControls">
+      <label class="cfToggle"><input type="checkbox" data-cf="ownerIncome" checked>世帯主給与</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="spouseIncome" checked>配偶者給与</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="pensionIncome" checked>年金</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="otherIncome" checked>その他収入</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="oneTimeIncome" checked>ライフイベント収入</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="idecoReceive" checked>iDeCo受取</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="nisaWithdraw" checked>NISA取り崩し</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="living" checked>生活費</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="houseCost" checked>住宅費</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="investment" checked>NISA/iDeCo</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="furnitureExpense" checked>家具・家電・引越し</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="renovationExpense" checked>リフォーム費用</label>
+      <label class="cfToggle"><input type="checkbox" data-cf="oneTimeExpense" checked>ライフイベント費用</label>
+    </div><div class="chartBox chartScroll"><div id="cashflowChartInner" class="chartInner"><canvas id="cashflowChart"></canvas></div></div></div>
+    <div class="card"><h3>ライフイベント</h3><div class="timeline" id="timeline"></div></div>
+    <div class="card"><h3>年間キャッシュフロー</h3><div class="tableWrap"><table id="cfTable"></table></div></div>
+      <section class="printOnly printDisclaimer">本資料は入力された条件および想定利回り等に基づく参考シミュレーションです。将来の収入、支出、運用成果、税制、社会保障制度、金利、不動産価値等を保証するものではありません。実際の資金計画は、金融機関・税理士・ファイナンシャルプランナー等の専門家にもご確認ください。</section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
