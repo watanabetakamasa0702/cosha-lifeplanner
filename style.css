@@ -65,3 +65,7 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
   .avoidBreak{break-inside:avoid;page-break-inside:avoid}
   .printDisclaimer{font-size:8px;color:#6b7280;line-height:1.55;border-top:1px solid var(--line);padding-top:8px;margin-top:8px}
 }
+@media print{
+#cashflowChart{max-height:220px!important;height:220px!important;}
+.chartBox{max-height:240px!important;}
+}
