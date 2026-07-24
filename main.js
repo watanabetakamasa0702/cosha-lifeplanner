@@ -572,9 +572,11 @@ function proposalTimelineHtml(){
   }
 
   return [...grouped.entries()].sort((a,b)=>a[0]-b[0]).map(([year,events])=>{
-    const items=events.map(item=>`<div class="eventText">${proposalEscape(item.name)}（${item.age}歳）</div>`).join('');
+    const filtered=events.filter(item=>!/火災保険/.test(item.name));
+    if(!filtered.length) return '';
+    const items=filtered.map(item=>`<div class="eventText">${proposalEscape(item.name)}（${item.age}歳）</div>`).join('');
     return `<div class="eventListRow"><div class="eventListYear">${year}年</div><div class="eventListItems">${items}</div></div>`;
-  }).join('');
+  }).filter(Boolean).join('');
 }
 function openProposalPreview(){
   run();
