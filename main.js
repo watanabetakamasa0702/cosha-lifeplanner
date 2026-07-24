@@ -534,9 +534,6 @@ document.querySelectorAll('.panel input,.panel select').forEach(el=>el.addEventL
 document.querySelectorAll('#cfControls input[type=checkbox]').forEach(el=>el.addEventListener('change',()=>{setSaveStatus('未保存の変更あり'); run();}));
 initSaveStatus();
 run();
-</script>
-
-<script>
 function proposalText(id, fallback='-'){
   const el=document.getElementById(id);
   const v=el ? (el.textContent || el.value || '').trim() : '';
