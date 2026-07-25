@@ -697,14 +697,14 @@ function fitProposalPages(){
   document.querySelectorAll('.page').forEach(page=>{
     const fit=page.querySelector('.pageFit');
     if(!fit) return;
-    fit.style.transform='';
-    fit.style.width='';
-    fit.style.zoom='';
-    const available=page.clientHeight-8;
+    fit.style.transform='none';
+    fit.style.width='100%';
+    const available=page.clientHeight;
     const needed=fit.scrollHeight;
     if(needed>available){
-      const scale=Math.max(0.88, available/needed);
-      fit.style.zoom=scale;
+      const scale=available/needed;
+      fit.style.transform='scale('+scale+')';
+      fit.style.width=(100/scale)+'%';
     }
   });
 }
