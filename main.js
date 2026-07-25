@@ -606,7 +606,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .toolbar button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer}
 .back{background:#edf0f1;color:var(--ink)}
 .pdf{background:var(--accent);color:#fff}
-.page{width:297mm;min-height:210mm;margin:24px auto;background:#fff;padding:11mm 13mm 9mm;box-shadow:0 8px 30px rgba(0,0,0,.12);page-break-after:always;display:flex;flex-direction:column}
+.page{width:297mm;height:210mm;margin:24px auto;background:#fff;padding:8mm 10mm 7mm;box-shadow:0 8px 30px rgba(0,0,0,.12);page-break-after:always;display:flex;flex-direction:column;overflow:hidden;}
 .page:last-child{page-break-after:auto}
 .brand{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:800}
 .head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:9px}
@@ -626,9 +626,9 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .note{background:var(--soft);border-left:4px solid var(--accent);padding:9px 11px;line-height:1.55;font-size:10px}
 .chart{width:100%;border:1px solid var(--line);border-radius:7px;padding:5px;background:#fff}
 .chart img{display:block;width:100%;height:auto;object-fit:contain}
-.assetChart img{max-height:78mm}
+.assetChart img{max-height:60mm}
 .cashflowSection{margin-top:9px}
-.cashflowChart img{max-height:65mm}
+.cashflowChart img{max-height:45mm}
 .page2Summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .page2Summary .metric{min-height:64px}
 .familyEvents{display:grid;grid-template-columns:.85fr 1.5fr;gap:16px;margin-top:10px}
@@ -655,7 +655,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
   @page{size:A4 landscape;margin:0}
   body{background:#fff}
   .toolbar{display:none}
-  .page{width:297mm;min-height:210mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm}
+  .page{width:297mm;height:210mm;margin:0;box-shadow:none;padding:8mm 10mm 7mm;overflow:hidden;}
   .page:last-child{page-break-after:auto}
 }
 </style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="window.print()">PDF保存／印刷</button></div>
