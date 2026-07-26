@@ -557,7 +557,7 @@ function proposalCanvas(id){
     ctx.drawImage(c,0,0);
     return copy.toDataURL('image/png');
   }catch(e){
-    console.error('提案書グラフの画像化に失敗しました:',id,e);
+    console.error('proposalCanvas:',id,e);
     return '';
   }
 }
@@ -595,14 +595,6 @@ function openProposalPreview(){
   run();
   setTimeout(()=>{
   if(typeof updatePrintReport==='function') updatePrintReport();
-  // Chart.jsのアニメーション途中で画像化すると、棒グラフが空になるため、
-  // 提案書を作る直前に全グラフを完成状態で再描画する。
-  charts.forEach(chart=>{
-    try{
-      chart.options.animation=false;
-      chart.update('none');
-    }catch(e){console.error(e);}
-  });
   const w=window.open('','_blank');
   if(!w){alert('提案書プレビューを開けませんでした。ポップアップを許可してください。');return;}
 
@@ -628,7 +620,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .back{background:#edf0f1;color:var(--ink)}
 .pdf{background:var(--accent);color:#fff}
 .page{width:297mm;height:210mm;margin:24px auto;background:#fff;padding:8mm 10mm 7mm;box-shadow:0 8px 30px rgba(0,0,0,.12);page-break-after:always;break-after:page;overflow:hidden}
-.pageFit{width:100%;transform-origin:top left}
+.pageFit{width:100%;height:100%;transform-origin:top left;display:flex;flex-direction:column}
 .page:last-child{page-break-after:auto}
 .brand{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:800}
 .head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:9px}
@@ -648,9 +640,10 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .note{background:var(--soft);border-left:4px solid var(--accent);padding:9px 11px;line-height:1.55;font-size:10px}
 .chart{width:100%;border:1px solid var(--line);border-radius:7px;padding:5px;background:#fff}
 .chart img{display:block;width:100%;height:auto;object-fit:contain}
-.assetChart img{max-height:60mm}
-.cashflowSection{margin-top:9px}
-.cashflowChart img{max-height:43mm}
+.assetChart img{max-height:50mm}
+.cashflowSection{margin-top:6px;flex:0 0 auto}
+.cashflowChart{height:43mm;overflow:hidden}
+.cashflowChart img{width:100%;height:100%;max-height:none;object-fit:contain}
 .page2Summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .page2Summary .metric{min-height:64px}
 .familyEvents{display:grid;grid-template-columns:.85fr 1.5fr;gap:16px;margin-top:10px}
@@ -665,7 +658,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .eventText{line-height:1.45;margin-bottom:3px;color:var(--ink)}
 .eventText:last-child{margin-bottom:0}
 .disclaimer{font-size:8px;line-height:1.5;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:7px}
-.footer{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:6px}
+.footer{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:auto;padding-top:4px;flex:0 0 auto}
 .empty{color:var(--muted);font-size:10px}
 @media(max-width:1100px){
   .page{width:calc(100% - 24px);min-height:auto;margin:12px;padding:22px}
@@ -720,16 +713,27 @@ function fitProposalPages(){
     if(!fit) return;
     fit.style.transform='none';
     fit.style.width='100%';
+    fit.style.height='100%';
     const available=page.clientHeight;
     const needed=fit.scrollHeight;
     if(needed>available){
-      const scale=available/needed;
+      const scale=Math.max(0.82,available/needed);
       fit.style.transform='scale('+scale+')';
       fit.style.width=(100/scale)+'%';
+      fit.style.height=(100/scale)+'%';
     }
   });
 }
-window.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(fitProposalPages)));
+function refitProposalPages(){
+  requestAnimationFrame(()=>requestAnimationFrame(fitProposalPages));
+}
+window.addEventListener('load',()=>{
+  document.querySelectorAll('img').forEach(img=>{
+    if(!img.complete) img.addEventListener('load',refitProposalPages,{once:true});
+  });
+  refitProposalPages();
+  setTimeout(fitProposalPages,250);
+});
 window.addEventListener('beforeprint',fitProposalPages);
 <\/script></body></html>`;
   w.document.open();w.document.write(doc);w.document.close();
