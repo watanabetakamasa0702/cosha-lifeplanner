@@ -544,6 +544,7 @@ function proposalInput(id, fallback='-'){
   const v=el ? String(el.value || '').trim() : '';
   return v || fallback;
 }
+async function proposalCanvas(id){
   const c=document.getElementById(id);
   if(!c || !c.width || !c.height) return '';
   try{
@@ -554,7 +555,7 @@ function proposalInput(id, fallback='-'){
     ctx.fillStyle='#fff';
     ctx.fillRect(0,0,copy.width,copy.height);
     ctx.drawImage(c,0,0);
-    return copy.toDataURL('image/png');
+    return await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(copy.toDataURL('image/png')))));
   }catch(e){
     console.error('proposalCanvas:',id,e);
     return '';
@@ -590,9 +591,9 @@ function proposalTimelineHtml(){
     return `<div class="eventListRow"><div class="eventListYear">${year}年</div><div class="eventListItems">${items}</div></div>`;
   }).filter(Boolean).join('');
 }
-function openProposalPreview(){
+async function openProposalPreview(){
   run();
-  setTimeout(()=>{
+  await new Promise(r=>setTimeout(r,500));
   if(typeof updatePrintReport==='function') updatePrintReport();
   const w=window.open('','_blank');
   if(!w){alert('提案書プレビューを開けませんでした。ポップアップを許可してください。');return;}
@@ -605,8 +606,8 @@ function openProposalPreview(){
   const family=document.getElementById('familyTable')?.outerHTML || '';
   const comment=document.getElementById('comment')?.innerHTML || '';
   const timeline=proposalTimelineHtml();
-  const asset=proposalCanvas('assetChart');
-  const cashflow=proposalCanvas('cashflowChart');
+  const asset=await proposalCanvas('assetChart');
+  const cashflow=await proposalCanvas('cashflowChart');
 
   const doc=`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${proposalEscape(client)}様 住宅購入ライフプラン</title>
 <style>
@@ -638,11 +639,11 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .section h2{font-size:13px;margin:0 0 7px;padding-bottom:5px;border-bottom:1px solid var(--line)}
 .note{background:var(--soft);border-left:4px solid var(--accent);padding:9px 11px;line-height:1.55;font-size:10px}
 .chart{width:100%;border:1px solid var(--line);border-radius:7px;padding:5px;background:#fff}
-.chart img{display:block;width:100%;height:auto;max-height:none;}
+.chart img{display:block;width:100%;height:auto;object-fit:contain}
 .assetChart img{max-height:50mm}
 .cashflowSection{margin-top:6px;flex:0 0 auto}
-.cashflowChart{ min-height:43mm;height:auto;overflow:hidden}
-.cashflowChart img{display:block;width:100%;height:auto;max-width:100%;max-height:none;object-fit:unset;}
+.cashflowChart{height:43mm;overflow:hidden}
+.cashflowChart img{width:100%;height:100%;max-height:none;object-fit:contain}
 .page2Summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .page2Summary .metric{min-height:64px}
 .familyEvents{display:grid;grid-template-columns:.85fr 1.5fr;gap:16px;margin-top:10px}
@@ -717,7 +718,7 @@ function fitProposalPages(){
     const needed=fit.scrollHeight;
     if(needed>available){
       const scale=Math.max(0.82,available/needed);
-      page.style.zoom = scale;
+      fit.style.transform='scale('+scale+')';
       fit.style.width=(100/scale)+'%';
       fit.style.height=(100/scale)+'%';
     }
@@ -736,5 +737,5 @@ window.addEventListener('load',()=>{
 window.addEventListener('beforeprint',fitProposalPages);
 <\/script></body></html>`;
   w.document.open();w.document.write(doc);w.document.close();
-  },350);
+
 }

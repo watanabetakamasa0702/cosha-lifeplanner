@@ -65,37 +65,3 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
   .avoidBreak{break-inside:avoid;page-break-inside:avoid}
   .printDisclaimer{font-size:8px;color:#6b7280;line-height:1.55;border-top:1px solid var(--line);padding-top:8px;margin-top:8px}
 }
-/* --- 印刷・PDF出力時の見切れ対策 --- */
-@media print {
-  /* 2ページ目の印刷可能高さを確保 */
-  .pdf-page:nth-child(2),
-  #p-table-container {
-    height: auto !important;
-    max-height: 190mm !important;
-    overflow: visible !important;
-  }
-
-  /* テーブル全体の文字・行間を詰めてA4に収める */
-  #p-table-container table {
-    width: 100% !important;
-    font-size: 7.5pt !important;    /* 文字を小さく */
-    border-collapse: collapse !important;
-    table-layout: fixed !important;
-  }
-
-  /* セルの余白（上下左右）を最小限にする */
-  #p-table-container th,
-  #p-table-container td {
-    padding: 1px 2px !important;    /* 余白を削減 */
-    line-height: 1.1 !important;     /* 行間を詰める */
-    height: auto !important;
-  }
-
-  /* スクロール枠による切り取りを解除 */
-  .table-responsive,
-  .pdf-table-wrapper {
-    overflow: visible !important;
-    max-height: none !important;
-    height: auto !important;
-  }
-}
