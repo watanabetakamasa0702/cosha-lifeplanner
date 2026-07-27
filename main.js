@@ -544,18 +544,30 @@ function proposalInput(id, fallback='-'){
   const v=el ? String(el.value || '').trim() : '';
   return v || fallback;
 }
-async function proposalCanvas(id){
+function proposalCanvas(id){
   const c=document.getElementById(id);
   if(!c || !c.width || !c.height) return '';
   try{
+    // 提案書では、画面上の横スクロール幅に左右されない固定サイズへ
+    // キャンバス全体を縮小コピーする。これでグラフ下部の切れを防ぐ。
+    const isCashflow=id==='cashflowChart';
     const copy=document.createElement('canvas');
-    copy.width=c.width;
-    copy.height=c.height;
+    copy.width=isCashflow ? 1800 : 1400;
+    copy.height=isCashflow ? 520 : 700;
     const ctx=copy.getContext('2d');
     ctx.fillStyle='#fff';
     ctx.fillRect(0,0,copy.width,copy.height);
-    ctx.drawImage(c,0,0);
-    return await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(copy.toDataURL('image/png')))));
+
+    const margin=isCashflow ? 18 : 10;
+    const maxW=copy.width-margin*2;
+    const maxH=copy.height-margin*2;
+    const scale=Math.min(maxW/c.width,maxH/c.height);
+    const w=c.width*scale;
+    const h=c.height*scale;
+    const x=(copy.width-w)/2;
+    const y=(copy.height-h)/2;
+    ctx.drawImage(c,0,0,c.width,c.height,x,y,w,h);
+    return copy.toDataURL('image/png');
   }catch(e){
     console.error('proposalCanvas:',id,e);
     return '';
@@ -592,11 +604,18 @@ function proposalTimelineHtml(){
   }).filter(Boolean).join('');
 }
 async function openProposalPreview(){
-  run();
-  await new Promise(r=>setTimeout(r,500));
-  if(typeof updatePrintReport==='function') updatePrintReport();
+  // window.open はクリック処理の直後に実行する。await 後に開くと
+  // ブラウザのポップアップ制限でプレビュー自体が開かなくなる。
   const w=window.open('','_blank');
   if(!w){alert('提案書プレビューを開けませんでした。ポップアップを許可してください。');return;}
+  w.document.open();
+  w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>提案書を作成中...</title></head><body style="font-family:sans-serif;padding:32px">提案書を作成しています...</body></html>');
+  w.document.close();
+
+  try{
+    run();
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(typeof updatePrintReport==='function') updatePrintReport();
 
   const client=proposalInput('ownerName','お客様');
   const created=new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric'}).format(new Date());
@@ -606,8 +625,8 @@ async function openProposalPreview(){
   const family=document.getElementById('familyTable')?.outerHTML || '';
   const comment=document.getElementById('comment')?.innerHTML || '';
   const timeline=proposalTimelineHtml();
-  const asset=await proposalCanvas('assetChart');
-  const cashflow=await proposalCanvas('cashflowChart');
+  const asset=proposalCanvas('assetChart');
+  const cashflow=proposalCanvas('cashflowChart');
 
   const doc=`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${proposalEscape(client)}様 住宅購入ライフプラン</title>
 <style>
@@ -642,8 +661,8 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .chart img{display:block;width:100%;height:auto;object-fit:contain}
 .assetChart img{max-height:50mm}
 .cashflowSection{margin-top:6px;flex:0 0 auto}
-.cashflowChart{height:43mm;overflow:hidden}
-.cashflowChart img{width:100%;height:100%;max-height:none;object-fit:contain}
+.cashflowChart{height:48mm;overflow:visible}
+.cashflowChart img{display:block;width:100%;height:100%;max-height:none;object-fit:contain;object-position:center}
 .page2Summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .page2Summary .metric{min-height:64px}
 .familyEvents{display:grid;grid-template-columns:.85fr 1.5fr;gap:16px;margin-top:10px}
@@ -737,5 +756,11 @@ window.addEventListener('load',()=>{
 window.addEventListener('beforeprint',fitProposalPages);
 <\/script></body></html>`;
   w.document.open();w.document.write(doc);w.document.close();
+  }catch(e){
+    console.error('openProposalPreview:',e);
+    w.document.open();
+    w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>エラー</title></head><body style="font-family:sans-serif;padding:32px"><h2>提案書を作成できませんでした。</h2><p>元の画面に戻って再計算後、もう一度お試しください。</p></body></html>');
+    w.document.close();
+  }
 
 }
