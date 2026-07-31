@@ -655,7 +655,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
   @page{size:A4 landscape;margin:0}
   body{background:#fff}
   .toolbar{display:none}
-  .page{width:297mm;min-height:210mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm}
+  .page{box-sizing:border-box;width:297mm;height:209mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm;overflow:hidden;page-break-after:always;break-after:page}
   .page:last-child{page-break-after:auto}
 }
 </style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="window.print()">PDF保存／印刷</button></div>
