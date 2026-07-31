@@ -511,19 +511,7 @@ function updatePrintReport(){
  const pb=document.getElementById('printBorrow'); if(pb) pb.textContent=yen(borrow);
  const pl=document.getElementById('printLoanTerms'); if(pl) pl.textContent=`${term}年・年${rate}%`;
 }
-
-function fitProposalPages(){
-  document.querySelectorAll('.page').forEach(page=>{
-    page.style.height='209mm';
-    page.style.overflow='hidden';
-  });
-}
-function preparePrint(){
-  fitProposalPages();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
-}
-
-window.addEventListener('beforeprint',()=>{fitProposalPages();run();updatePrintReport();});
+window.addEventListener('beforeprint',()=>{run();updatePrintReport();});
 function setupFinancialModal(){
  const card=document.getElementById('fin65Card');
  const modal=document.getElementById('fin65Modal');
@@ -670,7 +658,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
   .page{box-sizing:border-box;width:297mm;height:209mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm;overflow:hidden;page-break-after:always;break-after:page}
   .page:last-child{page-break-after:auto}
 }
-</style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="preparePrint()">PDF保存／印刷</button></div>
+</style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="setTimeout(()=>{if(window.fitProposalPages)fitProposalPages();requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));},0)">PDF保存／印刷</button></div>
 <section class="page">
 <div class="head"><div><div class="brand">COSHA LIFE DESIGN</div><h1>住宅購入ライフプラン</h1><div>${proposalEscape(client)} 様</div></div><div class="meta">作成日：${proposalEscape(created)}<br>株式会社cosha</div></div>
 <p class="lead">住宅購入後の暮らしを、現在の条件をもとに数字で見える化しました。</p>
