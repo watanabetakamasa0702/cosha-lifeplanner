@@ -546,32 +546,7 @@ function proposalInput(id, fallback='-'){
 }
 function proposalCanvas(id){
   const c=document.getElementById(id);
-  if(!c || !c.width || !c.height) return '';
-  try{
-    // 提案書では、画面上の横スクロール幅に左右されない固定サイズへ
-    // キャンバス全体を縮小コピーする。これでグラフ下部の切れを防ぐ。
-    const isCashflow=id==='cashflowChart';
-    const copy=document.createElement('canvas');
-    copy.width=isCashflow ? 1800 : 1400;
-    copy.height=isCashflow ? 520 : 700;
-    const ctx=copy.getContext('2d');
-    ctx.fillStyle='#fff';
-    ctx.fillRect(0,0,copy.width,copy.height);
-
-    const margin=isCashflow ? 18 : 10;
-    const maxW=copy.width-margin*2;
-    const maxH=copy.height-margin*2;
-    const scale=Math.min(maxW/c.width,maxH/c.height);
-    const w=c.width*scale;
-    const h=c.height*scale;
-    const x=(copy.width-w)/2;
-    const y=(copy.height-h)/2;
-    ctx.drawImage(c,0,0,c.width,c.height,x,y,w,h);
-    return copy.toDataURL('image/png');
-  }catch(e){
-    console.error('proposalCanvas:',id,e);
-    return '';
-  }
+  try{return c && c.width ? c.toDataURL('image/png',1) : '';}catch(e){return '';}
 }
 function proposalEscape(value){
   return String(value ?? '').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
@@ -597,25 +572,16 @@ function proposalTimelineHtml(){
   }
 
   return [...grouped.entries()].sort((a,b)=>a[0]-b[0]).map(([year,events])=>{
-    const filtered=events.filter(item=>!/火災保険/.test(item.name));
-    if(!filtered.length) return '';
-    const items=filtered.map(item=>`<div class="eventText">${proposalEscape(item.name)}（${item.age}歳）</div>`).join('');
+    const items=events.map(item=>`<div class="eventText">${proposalEscape(item.name)}（${item.age}歳）</div>`).join('');
     return `<div class="eventListRow"><div class="eventListYear">${year}年</div><div class="eventListItems">${items}</div></div>`;
-  }).filter(Boolean).join('');
+  }).join('');
 }
-async function openProposalPreview(){
-  // window.open はクリック処理の直後に実行する。await 後に開くと
-  // ブラウザのポップアップ制限でプレビュー自体が開かなくなる。
+function openProposalPreview(){
+  run();
+  setTimeout(()=>{
+  if(typeof updatePrintReport==='function') updatePrintReport();
   const w=window.open('','_blank');
   if(!w){alert('提案書プレビューを開けませんでした。ポップアップを許可してください。');return;}
-  w.document.open();
-  w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>提案書を作成中...</title></head><body style="font-family:sans-serif;padding:32px">提案書を作成しています...</body></html>');
-  w.document.close();
-
-  try{
-    run();
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    if(typeof updatePrintReport==='function') updatePrintReport();
 
   const client=proposalInput('ownerName','お客様');
   const created=new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric'}).format(new Date());
@@ -638,8 +604,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .toolbar button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer}
 .back{background:#edf0f1;color:var(--ink)}
 .pdf{background:var(--accent);color:#fff}
-.page{width:297mm;height:210mm;margin:24px auto;background:#fff;padding:8mm 10mm 7mm;box-shadow:0 8px 30px rgba(0,0,0,.12);page-break-after:always;break-after:page;overflow:hidden}
-.pageFit{width:100%;height:100%;transform-origin:top left;display:flex;flex-direction:column}
+.page{width:297mm;min-height:210mm;margin:24px auto;background:#fff;padding:11mm 13mm 9mm;box-shadow:0 8px 30px rgba(0,0,0,.12);page-break-after:always;display:flex;flex-direction:column}
 .page:last-child{page-break-after:auto}
 .brand{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:800}
 .head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:9px}
@@ -659,10 +624,9 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .note{background:var(--soft);border-left:4px solid var(--accent);padding:9px 11px;line-height:1.55;font-size:10px}
 .chart{width:100%;border:1px solid var(--line);border-radius:7px;padding:5px;background:#fff}
 .chart img{display:block;width:100%;height:auto;object-fit:contain}
-.assetChart img{max-height:50mm}
-.cashflowSection{margin-top:6px;flex:0 0 auto}
-.cashflowChart{height:48mm;overflow:visible}
-.cashflowChart img{display:block;width:100%;height:100%;max-height:none;object-fit:contain;object-position:center}
+.assetChart img{max-height:78mm}
+.cashflowSection{margin-top:9px}
+.cashflowChart img{max-height:65mm}
 .page2Summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .page2Summary .metric{min-height:64px}
 .familyEvents{display:grid;grid-template-columns:.85fr 1.5fr;gap:16px;margin-top:10px}
@@ -677,7 +641,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .eventText{line-height:1.45;margin-bottom:3px;color:var(--ink)}
 .eventText:last-child{margin-bottom:0}
 .disclaimer{font-size:8px;line-height:1.5;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:7px}
-.footer{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:auto;padding-top:4px;flex:0 0 auto}
+.footer{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:6px}
 .empty{color:var(--muted);font-size:10px}
 @media(max-width:1100px){
   .page{width:calc(100% - 24px);min-height:auto;margin:12px;padding:22px}
@@ -689,11 +653,11 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
   @page{size:A4 landscape;margin:0}
   body{background:#fff}
   .toolbar{display:none}
-  .page{width:297mm;height:210mm;margin:0;box-shadow:none;padding:8mm 10mm 7mm;overflow:hidden}
+  .page{width:297mm;min-height:210mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm}
   .page:last-child{page-break-after:auto}
 }
 </style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="window.print()">PDF保存／印刷</button></div>
-<section class="page"><div class="pageFit">
+<section class="page">
 <div class="head"><div><div class="brand">COSHA LIFE DESIGN</div><h1>住宅購入ライフプラン</h1><div>${proposalEscape(client)} 様</div></div><div class="meta">作成日：${proposalEscape(created)}<br>株式会社cosha</div></div>
 <p class="lead">住宅購入後の暮らしを、現在の条件をもとに数字で見える化しました。</p>
 <div class="topGrid">
@@ -715,8 +679,8 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 </div>
 <div class="section cashflowSection"><h2>全体キャッシュフロー</h2>${cashflow?`<div class="chart cashflowChart"><img src="${cashflow}"></div>`:'<div class="empty">グラフを表示できませんでした。</div>'}</div>
 <div class="footer"><span>cosha ライフプランシミュレーション</span><span>1 / 2</span></div>
-</div></section>
-<section class="page"><div class="pageFit">
+</section>
+<section class="page">
 <div class="head"><div><div class="brand">COSHA LIFE DESIGN</div><h1>ご家族とライフイベント</h1></div><div class="meta">${proposalEscape(client)} 様<br>${proposalEscape(created)}</div></div>
 <div class="familyEvents">
   <div class="section family"><h2>ご家族の状況</h2>${family}</div>
@@ -724,43 +688,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 </div>
 <div class="disclaimer">本資料は入力された条件および想定利回り等に基づく参考シミュレーションです。将来の収入、支出、運用成果、税制、社会保障制度、金利、不動産価値等を保証するものではありません。実際の資金計画は、金融機関・税理士・ファイナンシャルプランナー等の専門家にもご確認ください。</div>
 <div class="footer"><span>cosha ライフプランシミュレーション</span><span>2 / 2</span></div>
-</div></section>
-<script>
-function fitProposalPages(){
-  document.querySelectorAll('.page').forEach(page=>{
-    const fit=page.querySelector('.pageFit');
-    if(!fit) return;
-    fit.style.transform='none';
-    fit.style.width='100%';
-    fit.style.height='100%';
-    const available=page.clientHeight;
-    const needed=fit.scrollHeight;
-    if(needed>available){
-      const scale=Math.max(0.82,available/needed);
-      fit.style.transform='scale('+scale+')';
-      fit.style.width=(100/scale)+'%';
-      fit.style.height=(100/scale)+'%';
-    }
-  });
-}
-function refitProposalPages(){
-  requestAnimationFrame(()=>requestAnimationFrame(fitProposalPages));
-}
-window.addEventListener('load',()=>{
-  document.querySelectorAll('img').forEach(img=>{
-    if(!img.complete) img.addEventListener('load',refitProposalPages,{once:true});
-  });
-  refitProposalPages();
-  setTimeout(fitProposalPages,250);
-});
-window.addEventListener('beforeprint',fitProposalPages);
-<\/script></body></html>`;
+</section></body></html>`;
   w.document.open();w.document.write(doc);w.document.close();
-  }catch(e){
-    console.error('openProposalPreview:',e);
-    w.document.open();
-    w.document.write('<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>エラー</title></head><body style="font-family:sans-serif;padding:32px"><h2>提案書を作成できませんでした。</h2><p>元の画面に戻って再計算後、もう一度お試しください。</p></body></html>');
-    w.document.close();
-  }
-
+  },150);
 }
