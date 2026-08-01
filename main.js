@@ -645,7 +645,7 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 .disclaimer{font-size:8px;line-height:1.5;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:7px}
 .footer{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:6px}
 .empty{color:var(--muted);font-size:10px}
-@media(max-width:1100px){
+@media screen and (max-width:1100px){
   .page{width:calc(100% - 24px);min-height:auto;margin:12px;padding:22px}
   .topGrid,.familyEvents{grid-template-columns:1fr}
   .toolbar{padding:0 12px}
@@ -653,12 +653,14 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 }
 @media print{
   @page{size:A4 landscape;margin:0}
-  body{background:#fff}
+  html,body{width:297mm;height:auto;margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .toolbar{display:none}
-  .page{box-sizing:border-box;width:297mm;height:209mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm;overflow:hidden;page-break-after:always;break-after:page}
-  .page:last-child{page-break-after:auto}
+  .page{width:297mm;height:210mm;min-height:210mm;margin:0;box-shadow:none;padding:11mm 13mm 9mm;break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always;overflow:hidden}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .topGrid{grid-template-columns:.92fr 1.35fr}
+  .familyEvents{grid-template-columns:.85fr 1.5fr}
 }
-</style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="setTimeout(()=>{if(window.fitProposalPages)fitProposalPages();requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));},0)">PDF保存／印刷</button></div>
+</style></head><body><div class="toolbar"><button class="back" onclick="window.close()">← シミュレーターに戻る</button><strong>提案書プレビュー</strong><button class="pdf" onclick="printProposal()">PDF保存／印刷</button></div>
 <section class="page">
 <div class="head"><div><div class="brand">COSHA LIFE DESIGN</div><h1>住宅購入ライフプラン</h1><div>${proposalEscape(client)} 様</div></div><div class="meta">作成日：${proposalEscape(created)}<br>株式会社cosha</div></div>
 <p class="lead">住宅購入後の暮らしを、現在の条件をもとに数字で見える化しました。</p>
@@ -690,7 +692,15 @@ body{margin:0;background:#e9ebec;color:var(--ink);font-family:-apple-system,Blin
 </div>
 <div class="disclaimer">本資料は入力された条件および想定利回り等に基づく参考シミュレーションです。将来の収入、支出、運用成果、税制、社会保障制度、金利、不動産価値等を保証するものではありません。実際の資金計画は、金融機関・税理士・ファイナンシャルプランナー等の専門家にもご確認ください。</div>
 <div class="footer"><span>cosha ライフプランシミュレーション</span><span>2 / 2</span></div>
-</section></body></html>`;
+</section><script>
+async function printProposal(){
+  const images=[...document.images];
+  await Promise.all(images.map(img=>img.complete ? Promise.resolve() : new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});})));
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  window.print();
+}
+</script></body></html>`;
   w.document.open();w.document.write(doc);w.document.close();
   },150);
 }
