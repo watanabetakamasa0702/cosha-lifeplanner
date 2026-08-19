@@ -74,6 +74,11 @@ const STORAGE_KEY='coshaLifePlanner_v28_multi';
 let currentPlanId=null;
 let lastEditorMode='detailed';
 function setSaveStatus(msg){const el=document.getElementById('saveStatus'); if(el) el.textContent=msg;}
+function showSaveToast(msg){
+  const el=document.getElementById('saveToast');if(!el)return;
+  el.textContent=msg;el.hidden=false;
+  clearTimeout(showSaveToast.timer);showSaveToast.timer=setTimeout(()=>{el.hidden=true;},2400);
+}
 function getPlanStore(){
   try{
     const store=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"plans":[],"currentId":null}');
@@ -120,6 +125,15 @@ function saveAsNewPlan(){
   currentPlanId=id;
   renderSavedPlans();
   setSaveStatus(`保存しました：${name.trim()}`);
+  showSaveToast(`保存しました：${name.trim()}`);
+}
+function saveCurrentPlan(){
+  const store=getPlanStore();
+  const selected=store.plans.find(p=>p.id===store.currentIds?.[lastEditorMode]&&p.mode===lastEditorMode);
+  if(selected){
+    if(confirm(`${selected.name}に上書き保存しますか？\n「キャンセル」を選ぶと新規保存します。`)) overwriteCurrentPlan();
+    else saveAsNewPlan();
+  }else saveAsNewPlan();
 }
 function overwriteCurrentPlan(){
   const store=getPlanStore();
@@ -132,6 +146,7 @@ function overwriteCurrentPlan(){
   setPlanStore(store);
   renderSavedPlans();
   setSaveStatus(`上書き保存しました：${plan.name}`);
+  showSaveToast(`上書き保存しました：${plan.name}`);
 }
 function loadPlanById(id){
   const store=getPlanStore();
@@ -772,6 +787,25 @@ function simpleNumber(id){
 function simpleMoney(value,digits=1){
   if(!Number.isFinite(value)) return '―';
   return value.toLocaleString('ja-JP',{minimumFractionDigits:0,maximumFractionDigits:digits})+'万円';
+}
+
+function openSimplePrintPreview(){
+  runSimpleComparison();
+  const w=window.open('','_blank');
+  if(!w){alert('印刷画面を開けませんでした。ポップアップを許可してください。');return;}
+  const years=parseInt(document.getElementById('simpleYears')?.value||'10',10)||10;
+  const client=(document.getElementById('simpleClientName')?.value||'').trim()||'お客様';
+  const age=(document.getElementById('simpleAge')?.value||'').trim();
+  const income=simpleNumber('simpleIncome'),living=simpleNumber('simpleLiving'),rent=simpleNumber('simpleRent');
+  const a=simpleScenario('A',years),b=simpleScenario('B',years);
+  const resultHtml=document.querySelector('#simpleMode .simpleResults')?.innerHTML||'';
+  const created=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+  const scenario=(s)=>`<div class="condition scenario"><b>${proposalEscape(s.name)}</b><span>総額 ${simpleMoney(s.totalPrice)} ／ 自己資金 ${simpleMoney(s.down)} ／ 借入 ${simpleMoney(s.borrow)}</span><span>金利 ${s.rate}%・${s.term||'-'}年 ／ 管理・修繕 ${simpleMoney(s.maint)}/月</span></div>`;
+  const doc=`<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${proposalEscape(client)}様 住まい方比較</title><style>
+*{box-sizing:border-box}body{margin:0;background:#eef1f4;color:#24313d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;background:#142e46;color:#fff}.toolbar button{border:0;border-radius:9px;padding:9px 14px;font-weight:800;cursor:pointer}.sheet{width:297mm;min-height:210mm;margin:12px auto;padding:9mm;background:#fff}.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #142e46;padding-bottom:7px}.brand{font-size:9px;letter-spacing:.14em;color:#a87351;font-weight:900}.head h1{font-size:22px;margin:2px 0}.meta{text-align:right;font-size:10px;color:#66717d;line-height:1.6}.conditions{display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:7px;margin:8px 0}.condition{border:1px solid #dfe4e8;border-radius:9px;padding:7px 9px;background:#f8f9fa;font-size:9px}.condition b,.condition span{display:block}.condition b{font-size:11px;color:#142e46;margin-bottom:3px}.condition span{line-height:1.5}.simpleResults{display:flex;flex-direction:column;gap:7px}.simpleResultCard{border:1px solid #dfe4e8;border-radius:11px;padding:9px 10px;background:#fff}.resultTitle{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px}.resultTitle span{font-size:7px;letter-spacing:.1em;color:#a87351;font-weight:900}.resultTitle h3{font-size:12px;margin:1px 0;color:#142e46}.resultTitle b{font-size:8px;background:#f2f4f5;padding:4px 6px;border-radius:99px}.simpleMonthlyCards{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.simpleMonthlyCard{border:1px solid #dfe4e8;border-radius:8px;padding:6px 8px;background:#fafbfc;display:grid;grid-template-columns:1fr auto;align-items:center}.simpleMonthlyCard span,.simpleMonthlyCard small{font-size:7px;color:#66717d}.simpleMonthlyCard b{font-size:12px;color:#142e46;text-align:right}.simpleMonthlyCard strong{font-size:10px;text-align:right}.good{color:#18704c!important}.bad{color:#b53838!important}.simpleTableWrap{overflow:visible}.simpleCompareTable{width:100%;border-collapse:collapse;font-size:7.5px}.simpleCompareTable th,.simpleCompareTable td{border-bottom:1px solid #e4e8eb;padding:3px 5px;text-align:right}.simpleCompareTable th:first-child,.simpleCompareTable td:first-child{text-align:left}.simpleCompareTable th{background:#142e46;color:#fff}.sectionRow td{background:#eef2f5!important;color:#142e46;font-weight:900;text-align:left!important}.simpleTableSpacer td{height:4px;border:0}.simpleNotice{font-size:6.5px;color:#66717d;line-height:1.35;margin-top:4px}.simpleComment{font-size:7.5px;line-height:1.4}.simpleComment ul{margin:0;padding-left:15px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px}.simpleComment li{margin-bottom:3px}.inputStatus{font-size:7px;color:#9a6848}.disclaimer{font-size:6.5px;color:#66717d;border-top:1px solid #dfe4e8;margin-top:6px;padding-top:4px}
+@page{size:A4 landscape;margin:0}@media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none}.sheet{margin:0;width:297mm;min-height:210mm;box-shadow:none;page-break-after:avoid}}
+</style></head><body><div class="toolbar"><button onclick="window.close()">← 戻る</button><strong>簡易比較プレビュー</strong><button onclick="window.print()">PDF保存／印刷</button></div><main class="sheet"><div class="head"><div><div class="brand">COSHA LIFE DESIGN</div><h1>住まい方比較シミュレーション</h1><div>${proposalEscape(client)} 様</div></div><div class="meta">作成日：${proposalEscape(created)}<br>比較期間：${years}年間</div></div><div class="conditions"><div class="condition"><b>共通条件</b><span>${age?age+'歳 ／ ':''}手取り ${simpleMoney(income)}/月</span><span>生活費 ${simpleMoney(living)}/月 ／ 家賃 ${simpleMoney(rent)}/月</span></div>${scenario(a)}${scenario(b)}</div><div class="simpleResults">${resultHtml}</div><div class="disclaimer">本資料は入力条件に基づく参考シミュレーションです。将来の金利、税金、維持費等を保証するものではありません。不動産の将来価値および売却時の収支は含みません。</div></main></body></html>`;
+  w.document.open();w.document.write(doc);w.document.close();
 }
 
 function simpleScenario(prefix,years){

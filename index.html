@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ライフプランシミュレーション v0.34</title>
+<title>ライフプランシミュレーション v0.35</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -101,7 +101,7 @@
     </details></div>
     
   
-    <div class="actions"><button onclick="run()">再計算</button><button class="secondary" onclick="openProposalPreview()">提案書プレビュー</button></div>
+    <div class="actions"><button onclick="run()">再計算</button><button class="secondary" onclick="saveCurrentPlan()">保存</button><button class="secondary" onclick="openProposalPreview()">提案書プレビュー</button></div>
 </aside>
   <main class="main">
     <section class="printOnly printReportHead">
@@ -186,7 +186,7 @@
 <section class="simpleMode modeSection" id="simpleMode" hidden>
   <div class="simpleIntro">
     <div><div class="eyebrow">FIRST MEETING TOOL</div><h2>住まい方を、シンプルに比較</h2><p>金融資産や将来の不動産価値は含めず、現在の家計と住宅費だけで比較します。</p></div>
-    <div class="simplePeriod"><label for="simpleYears">比較期間</label><select id="simpleYears"><option value="5">5年間</option><option value="10" selected>10年間</option><option value="20">20年間</option></select><button type="button" class="simpleRecalc" onclick="runSimpleComparison()">再計算</button></div>
+    <div class="simplePeriod"><label for="simpleYears">比較期間</label><select id="simpleYears"><option value="5">5年間</option><option value="10" selected>10年間</option><option value="20">20年間</option></select><div class="simpleTopActions"><button type="button" onclick="runSimpleComparison()">再計算</button><button type="button" class="secondary" onclick="saveCurrentPlan()">保存</button><button type="button" class="secondary wide" onclick="openSimplePrintPreview()">PDF保存／印刷</button></div></div>
   </div>
 
   <div class="simpleLayout">
@@ -281,6 +281,7 @@
     </section>
   </div>
 </section>
+<div class="saveToast" id="saveToast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="main.js"></script>
 </body>
