@@ -396,7 +396,7 @@ function withChartColor(ds){
   }
   return ds;
 }
-function draw(id,type,labels,datasets,extraOptions={}){const ctx=document.getElementById(id); const colored=datasets.map(d=>withChartColor(d)); const tooltipLabel=extraOptions.tooltipLabel; delete extraOptions.tooltipLabel; const defaultPlugins={legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:12,font:{size:11}}},tooltip:{callbacks:{label:tooltipLabel||((c)=>`${c.dataset.label}: ${yen(c.raw)}`)}}}; const plugins={...defaultPlugins,...(extraOptions.plugins||{})}; charts.push(new Chart(ctx,{type, data:{labels,datasets:colored}, options:{responsive:true,maintainAspectRatio:false,plugins,elements:{line:{borderWidth:1.8},point:{radius:0,hoverRadius:4}},scales:{y:{ticks:{callback:v=>v+'万'}},...(extraOptions.scales||{})},...extraOptions,plugins}}))}
+function draw(id,type,labels,datasets,extraOptions={}){const ctx=document.getElementById(id); if(!ctx||typeof Chart==='undefined')return; const colored=datasets.map(d=>withChartColor(d)); const tooltipLabel=extraOptions.tooltipLabel; delete extraOptions.tooltipLabel; const defaultPlugins={legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:12,font:{size:11}}},tooltip:{callbacks:{label:tooltipLabel||((c)=>`${c.dataset.label}: ${yen(c.raw)}`)}}}; const plugins={...defaultPlugins,...(extraOptions.plugins||{})}; charts.push(new Chart(ctx,{type, data:{labels,datasets:colored}, options:{responsive:true,maintainAspectRatio:false,plugins,elements:{line:{borderWidth:1.8},point:{radius:0,hoverRadius:4}},scales:{y:{ticks:{callback:v=>v+'万'}},...(extraOptions.scales||{})},...extraOptions,plugins}}))}
 function cfChecked(key){const el=document.querySelector(`#cfControls input[data-cf="${key}"]`); return !el || el.checked;}
 function cfDataset(label,key,data){return cfChecked(key)?withChartColor({label,data:data.cf[key],borderWidth:0,stack:'cf'}):null;}
 function drawCashflow(data,rows){
@@ -533,6 +533,7 @@ document.getElementById('ownerDob')?.addEventListener('input',()=>{document.getE
 document.querySelectorAll('.panel input,.panel select').forEach(el=>el.addEventListener('change',()=>{setSaveStatus('未保存の変更あり'); run();}));
 document.querySelectorAll('#cfControls input[type=checkbox]').forEach(el=>el.addEventListener('change',()=>{setSaveStatus('未保存の変更あり'); run();}));
 initSaveStatus();
+initSimpleComparison();
 run();
 function proposalText(id, fallback='-'){
   const el=document.getElementById(id);
@@ -742,22 +743,28 @@ function simpleScenario(prefix,years){
   const insurance=simpleNumber(`simple${prefix}Insurance`);
   const totalPrice=price+renovation+cost;
   const borrow=Math.max(0,totalPrice-down);
+  const started=[price,renovation,cost,down,rate,term,maint,tax,insurance].some(v=>v>0);
+  const missing=[];
+  if(totalPrice<=0) missing.push('物件価格・リフォーム費用・諸費用のいずれか');
+  if(term<=0) missing.push('返済期間');
   const valid=totalPrice>0 && term>0;
   const monthlyLoan=valid?loanPayment(borrow,rate,term):0;
-  const monthlyHousing=monthlyLoan+maint+tax/12+insurance/12;
+  const monthlyHousing=monthlyLoan+maint+tax/12+insurance/60;
   const comparisonMonths=Math.max(0,years*12);
   const loanMonths=Math.min(comparisonMonths,term*12);
   const balance=valid?loanBalance(borrow,rate,term,loanMonths):0;
   const principalPaid=valid?Math.max(0,borrow-balance):0;
   const loanPaid=monthlyLoan*loanMonths;
   const interestPaid=Math.max(0,loanPaid-principalPaid);
-  const cumulative=down+loanPaid+(maint*comparisonMonths)+(tax*years)+(insurance*years);
+  const insurancePayments=Math.ceil(years/5);
+  const cumulative=down+loanPaid+(maint*comparisonMonths)+(tax*years)+(insurance*insurancePayments);
   const name=(document.getElementById(`simple${prefix}Name`)?.value||'').trim()||`物件${prefix}`;
-  return {prefix,name,valid,price,renovation,cost,down,totalPrice,borrow,rate,term,maint,tax,insurance,monthlyLoan,monthlyHousing,balance,principalPaid,interestPaid,cumulative};
+  return {prefix,name,started,missing,valid,price,renovation,cost,down,totalPrice,borrow,rate,term,maint,tax,insurance,insurancePayments,monthlyLoan,monthlyHousing,balance,principalPaid,interestPaid,cumulative};
 }
 
-function simpleCell(value,valid=true,digits=1){
-  return valid?simpleMoney(value,digits):'―';
+function simpleCell(value,scenario,digits=1){
+  if(scenario.valid) return simpleMoney(value,digits);
+  return `<span class="inputStatus">${scenario.started?'入力不足':'未入力'}</span>`;
 }
 
 function runSimpleComparison(){
@@ -778,8 +785,8 @@ function runSimpleComparison(){
   put('simpleAResultName',a.name); put('simpleBResultName',b.name);
   put('simpleAColumn',a.name); put('simpleBColumn',b.name);
   put('simpleRentMonthly',simpleMoney(rent));
-  put('simpleAMonthly',simpleCell(a.monthlyHousing,a.valid));
-  put('simpleBMonthly',simpleCell(b.monthlyHousing,b.valid));
+  put('simpleAMonthly',a.valid?simpleMoney(a.monthlyHousing):(a.started?'入力不足':'未入力'));
+  put('simpleBMonthly',b.valid?simpleMoney(b.monthlyHousing):(b.started?'入力不足':'未入力'));
   put('simpleRentRemainder',simpleMoney(rentRemainder));
   put('simpleARemainder',a.valid?simpleMoney(income-living-a.monthlyHousing):'―');
   put('simpleBRemainder',b.valid?simpleMoney(income-living-b.monthlyHousing):'―');
@@ -790,19 +797,27 @@ function runSimpleComparison(){
     el.classList.toggle('good',raw!==null&&raw>=0); el.classList.toggle('bad',raw!==null&&raw<0);
   });
 
+  [a,b].forEach(s=>{
+    const box=document.querySelector(`[data-simple-scenario="${s.prefix.toLowerCase()}"]`);
+    const validation=document.getElementById(`simple${s.prefix}Validation`);
+    const show=s.started&&!s.valid;
+    box?.classList.toggle('hasError',show);
+    if(validation){validation.hidden=!show;validation.textContent=show?`${s.missing.join('、')}を入力してください。`:'';}
+  });
+
   const rows=[
     `<tr class="sectionRow"><td colspan="4">現在の毎月負担</td></tr>`,
-    `<tr><td>毎月の住居費</td><td>${simpleMoney(rent)}</td><td>${simpleCell(a.monthlyHousing,a.valid)}</td><td>${simpleCell(b.monthlyHousing,b.valid)}</td></tr>`,
-    `<tr><td>生活費を含めた毎月支出</td><td>${simpleMoney(living+rent)}</td><td>${simpleCell(living+a.monthlyHousing,a.valid)}</td><td>${simpleCell(living+b.monthlyHousing,b.valid)}</td></tr>`,
-    `<tr><td>毎月の余裕額</td><td>${simpleMoney(rentRemainder)}</td><td>${a.valid?simpleMoney(income-living-a.monthlyHousing):'―'}</td><td>${b.valid?simpleMoney(income-living-b.monthlyHousing):'―'}</td></tr>`,
+    `<tr><td>毎月の住居費</td><td>${simpleMoney(rent)}</td><td>${simpleCell(a.monthlyHousing,a)}</td><td>${simpleCell(b.monthlyHousing,b)}</td></tr>`,
+    `<tr><td>生活費を含めた毎月支出</td><td>${simpleMoney(living+rent)}</td><td>${simpleCell(living+a.monthlyHousing,a)}</td><td>${simpleCell(living+b.monthlyHousing,b)}</td></tr>`,
+    `<tr><td>毎月の余裕額</td><td>${simpleMoney(rentRemainder)}</td><td>${a.valid?simpleMoney(income-living-a.monthlyHousing):simpleCell(0,a)}</td><td>${b.valid?simpleMoney(income-living-b.monthlyHousing):simpleCell(0,b)}</td></tr>`,
     `<tr class="sectionRow"><td colspan="4">${years}年間の比較</td></tr>`,
-    `<tr><td>住居関連支出の累計</td><td>${simpleMoney(rentCumulative)}</td><td>${simpleCell(a.cumulative,a.valid)}</td><td>${simpleCell(b.cumulative,b.valid)}</td></tr>`,
+    `<tr><td>住居関連支出の累計</td><td>${simpleMoney(rentCumulative)}</td><td>${simpleCell(a.cumulative,a)}</td><td>${simpleCell(b.cumulative,b)}</td></tr>`,
     `<tr><td>支払った家賃</td><td>${simpleMoney(rentCumulative)}</td><td>―</td><td>―</td></tr>`,
-    `<tr><td>借入予定額</td><td>―</td><td>${simpleCell(a.borrow,a.valid)}</td><td>${simpleCell(b.borrow,b.valid)}</td></tr>`,
-    `<tr><td>返済した元金</td><td>―</td><td>${simpleCell(a.principalPaid,a.valid)}</td><td>${simpleCell(b.principalPaid,b.valid)}</td></tr>`,
-    `<tr><td>支払った利息</td><td>―</td><td>${simpleCell(a.interestPaid,a.valid)}</td><td>${simpleCell(b.interestPaid,b.valid)}</td></tr>`,
-    `<tr><td>${years}年後のローン残高</td><td>―</td><td>${simpleCell(a.balance,a.valid)}</td><td>${simpleCell(b.balance,b.valid)}</td></tr>`,
-    `<tr><td>ローン完済年齢</td><td>―</td><td>${a.valid&&age?Math.round(age+a.term)+'歳':'―'}</td><td>${b.valid&&age?Math.round(age+b.term)+'歳':'―'}</td></tr>`
+    `<tr><td>借入予定額</td><td>―</td><td>${simpleCell(a.borrow,a)}</td><td>${simpleCell(b.borrow,b)}</td></tr>`,
+    `<tr><td>返済した元金</td><td>―</td><td>${simpleCell(a.principalPaid,a)}</td><td>${simpleCell(b.principalPaid,b)}</td></tr>`,
+    `<tr><td>支払った利息</td><td>―</td><td>${simpleCell(a.interestPaid,a)}</td><td>${simpleCell(b.interestPaid,b)}</td></tr>`,
+    `<tr><td>${years}年後のローン残高</td><td>―</td><td>${simpleCell(a.balance,a)}</td><td>${simpleCell(b.balance,b)}</td></tr>`,
+    `<tr><td>ローン完済年齢</td><td>―</td><td>${a.valid&&age?Math.round(age+a.term)+'歳':(a.valid?'年齢未入力':simpleCell(0,a))}</td><td>${b.valid&&age?Math.round(age+b.term)+'歳':(b.valid?'年齢未入力':simpleCell(0,b))}</td></tr>`
   ];
   const body=document.getElementById('simpleCompareBody'); if(body)body.innerHTML=rows.join('');
 
@@ -814,6 +829,8 @@ function runSimpleComparison(){
   }
   if(a.valid) points.push(`${a.name}は${years}年間で元金を約${simpleMoney(a.principalPaid)}返済し、ローン残高は約${simpleMoney(a.balance)}となります。`);
   if(b.valid) points.push(`${b.name}は${years}年間で元金を約${simpleMoney(b.principalPaid)}返済し、ローン残高は約${simpleMoney(b.balance)}となります。`);
+  if(a.started&&!a.valid) points.push(`${a.name}は${a.missing.join('、')}が未入力のため、比較結果を計算できません。`);
+  if(b.started&&!b.valid) points.push(`${b.name}は${b.missing.join('、')}が未入力のため、比較結果を計算できません。`);
   if(!a.valid&&!b.valid) points.push('物件Aまたは物件Bの価格・返済条件を入力してください。');
   points.push('購入した不動産の将来価値は計算に含めていないため、支出額だけで購入の有利・不利を断定するものではありません。');
   const comment=document.getElementById('simpleComment'); if(comment)comment.innerHTML=`<ul>${points.map(p=>`<li>${p}</li>`).join('')}</ul>`;
@@ -826,4 +843,3 @@ function initSimpleComparison(){
   });
   runSimpleComparison();
 }
-initSimpleComparison();

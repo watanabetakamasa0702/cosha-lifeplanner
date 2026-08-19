@@ -77,6 +77,7 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
 .simpleIntro h2{font-size:25px;margin:4px 0 5px;color:var(--navy)}
 .simpleIntro p{margin:0;color:var(--muted);font-size:13px}
 .simplePeriod{min-width:150px}.simplePeriod label{font-weight:800;color:var(--navy)}
+.simpleRecalc{width:100%;margin-top:8px;padding:9px 12px;border-radius:11px;font-size:12px}
 .simpleLayout{display:grid;grid-template-columns:minmax(440px, .82fr) minmax(560px,1.18fr);gap:18px;align-items:start}
 .simpleInputs,.simpleResults{display:flex;flex-direction:column;gap:16px}
 .simpleInputCard,.simpleResultCard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--shadow)}
@@ -87,6 +88,9 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
 .simpleScenarioInputs .simpleGrid2{grid-template-columns:1fr}
 .simpleScenarioInputs .wide{grid-column:auto}
 .scenarioA{border-top:5px solid #315b80}.scenarioB{border-top:5px solid #9a6848}
+.simpleInputCard.hasError{border-color:#f1b4b4;background:#fffafa}
+.simpleValidation{margin-top:10px;padding:8px 10px;border-radius:10px;background:#fff0f0;color:var(--bad);font-size:11px;font-weight:700;line-height:1.5}
+.simpleValidation[hidden]{display:none}
 .scenarioHeading{display:flex;align-items:center;gap:10px}
 .scenarioHeading span{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:var(--navy);color:#fff;font-weight:900}
 .scenarioB .scenarioHeading span{background:#8b5c3d}
@@ -104,6 +108,7 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
 .simpleTableWrap{overflow:auto}.simpleCompareTable{font-size:12px;min-width:620px}.simpleCompareTable th,.simpleCompareTable td{padding:9px 8px}
 .simpleCompareTable th:first-child,.simpleCompareTable td:first-child{font-weight:700;color:var(--ink)}
 .simpleCompareTable .sectionRow td{background:#f4f6f7;color:var(--navy);font-size:11px;font-weight:900;text-align:left}
+.simpleCompareTable .inputStatus{color:var(--bad);font-size:11px;font-weight:700}
 .simpleNotice{font-size:10px;line-height:1.6;color:var(--muted);background:#f8f8f7;border-left:3px solid var(--accent);padding:9px 11px;margin-top:12px}
 .simpleComment{background:#f6f7f8;border-radius:15px;padding:14px;line-height:1.75;font-size:13px}
 .simpleComment ul{margin:0;padding-left:20px}.simpleComment li+li{margin-top:5px}

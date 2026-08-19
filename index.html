@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ライフプランシミュレーション v0.30</title>
+<title>ライフプランシミュレーション v0.31</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -191,7 +191,7 @@
 <section class="simpleMode modeSection" id="simpleMode" hidden>
   <div class="simpleIntro">
     <div><div class="eyebrow">FIRST MEETING TOOL</div><h2>住まい方を、シンプルに比較</h2><p>金融資産や将来の不動産価値は含めず、現在の家計と住宅費だけで比較します。</p></div>
-    <div class="simplePeriod"><label for="simpleYears">比較期間</label><select id="simpleYears"><option value="5">5年間</option><option value="10" selected>10年間</option><option value="20">20年間</option></select></div>
+    <div class="simplePeriod"><label for="simpleYears">比較期間</label><select id="simpleYears"><option value="5">5年間</option><option value="10" selected>10年間</option><option value="20">20年間</option></select><button type="button" class="simpleRecalc" onclick="runSimpleComparison()">再計算</button></div>
   </div>
 
   <div class="simpleLayout">
@@ -210,6 +210,7 @@
       <div class="simpleScenarioInputs">
         <section class="simpleInputCard scenarioA" data-simple-scenario="a">
           <div class="scenarioHeading"><span>A</span><input id="simpleAName" type="text" placeholder="物件A"></div>
+          <div class="simpleValidation" id="simpleAValidation" hidden></div>
           <div class="simpleGrid2">
             <div class="field"><label>物件価格（万円）</label><input id="simpleAPrice" type="number" min="0" step="1"></div>
             <div class="field"><label>リフォーム費用（万円）</label><input id="simpleARenovation" type="number" min="0" step="1"></div>
@@ -220,12 +221,13 @@
             <div class="field"><label>返済期間（年）</label><input id="simpleATerm" type="number" min="1" max="50" step="1"></div>
             <div class="field"><label>管理費・修繕費／月（万円）</label><input id="simpleAMaint" type="number" min="0" step="0.1"></div>
             <div class="field"><label>固定資産税／年（万円）</label><input id="simpleATax" type="number" min="0" step="0.1"></div>
-            <div class="field wide"><label>火災保険等／年（万円）</label><input id="simpleAInsurance" type="number" min="0" step="0.1"></div>
+            <div class="field wide"><label>火災保険（5年一括・万円）</label><input id="simpleAInsurance" type="number" min="0" step="0.1"></div>
           </div>
         </section>
 
         <section class="simpleInputCard scenarioB" data-simple-scenario="b">
           <div class="scenarioHeading"><span>B</span><input id="simpleBName" type="text" placeholder="物件B"></div>
+          <div class="simpleValidation" id="simpleBValidation" hidden></div>
           <div class="simpleGrid2">
             <div class="field"><label>物件価格（万円）</label><input id="simpleBPrice" type="number" min="0" step="1"></div>
             <div class="field"><label>リフォーム費用（万円）</label><input id="simpleBRenovation" type="number" min="0" step="1"></div>
@@ -236,7 +238,7 @@
             <div class="field"><label>返済期間（年）</label><input id="simpleBTerm" type="number" min="1" max="50" step="1"></div>
             <div class="field"><label>管理費・修繕費／月（万円）</label><input id="simpleBMaint" type="number" min="0" step="0.1"></div>
             <div class="field"><label>固定資産税／年（万円）</label><input id="simpleBTax" type="number" min="0" step="0.1"></div>
-            <div class="field wide"><label>火災保険等／年（万円）</label><input id="simpleBInsurance" type="number" min="0" step="0.1"></div>
+            <div class="field wide"><label>火災保険（5年一括・万円）</label><input id="simpleBInsurance" type="number" min="0" step="0.1"></div>
           </div>
         </section>
       </div>
@@ -255,7 +257,7 @@
       <section class="simpleResultCard">
         <div class="resultTitle"><div><span>RENT OR BUY</span><h3>賃貸継続と購入の比較</h3></div></div>
         <div class="simpleTableWrap"><table class="simpleCompareTable"><thead><tr><th>比較項目</th><th>賃貸継続</th><th id="simpleAColumn">物件A</th><th id="simpleBColumn">物件B</th></tr></thead><tbody id="simpleCompareBody"></tbody></table></div>
-        <div class="simpleNotice">※購入した不動産の将来価値および売却時の収支は、この比較には含まれていません。</div>
+        <div class="simpleNotice">※購入時の毎月住居費は「ローン返済額＋管理費・修繕費＋固定資産税÷12＋火災保険（5年一括）÷60」です。購入した不動産の将来価値および売却時の収支は、この比較には含まれていません。</div>
       </section>
 
       <section class="simpleResultCard">
