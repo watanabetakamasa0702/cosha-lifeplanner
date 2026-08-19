@@ -123,6 +123,7 @@ function loadPlanById(id){
   currentPlanId=id;
   renderSavedPlans();
   setSaveStatus(`読み込みました：${plan.name}`);
+  switchLifeplanMode('detailed');
 }
 function deletePlanById(id){
   const store=getPlanStore();
@@ -709,13 +710,24 @@ async function printProposal(){
 /* ===== 簡易入力ver. ===== */
 function switchLifeplanMode(mode){
   const simple=mode==='simple';
+  const detailed=mode==='detailed';
+  const saved=mode==='saved';
   const simpleSection=document.getElementById('simpleMode');
   const detailedSection=document.getElementById('detailedMode');
+  const savedSection=document.getElementById('savedMode');
   if(simpleSection) simpleSection.hidden=!simple;
-  if(detailedSection) detailedSection.hidden=simple;
+  if(detailedSection) detailedSection.hidden=!detailed;
+  if(savedSection) savedSection.hidden=!saved;
   document.getElementById('simpleModeButton')?.classList.toggle('active',simple);
-  document.getElementById('detailedModeButton')?.classList.toggle('active',!simple);
-  if(simple) runSimpleComparison(); else run();
+  document.getElementById('detailedModeButton')?.classList.toggle('active',detailed);
+  document.getElementById('savedModeButton')?.classList.toggle('active',saved);
+  if(simple) runSimpleComparison();
+  if(detailed) run();
+  if(saved){
+    renderSavedPlans();
+    const store=getPlanStore();
+    setSaveStatus(store.plans.length?`${store.plans.length}件保存済み`:'未保存');
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -810,6 +822,7 @@ function runSimpleComparison(){
     `<tr><td>毎月の住居費</td><td>${simpleMoney(rent)}</td><td>${simpleCell(a.monthlyHousing,a)}</td><td>${simpleCell(b.monthlyHousing,b)}</td></tr>`,
     `<tr><td>生活費を含めた毎月支出</td><td>${simpleMoney(living+rent)}</td><td>${simpleCell(living+a.monthlyHousing,a)}</td><td>${simpleCell(living+b.monthlyHousing,b)}</td></tr>`,
     `<tr><td>毎月の余裕額</td><td>${simpleMoney(rentRemainder)}</td><td>${a.valid?simpleMoney(income-living-a.monthlyHousing):simpleCell(0,a)}</td><td>${b.valid?simpleMoney(income-living-b.monthlyHousing):simpleCell(0,b)}</td></tr>`,
+    `<tr class="simpleTableSpacer" aria-hidden="true"><td colspan="4"></td></tr>`,
     `<tr class="sectionRow"><td colspan="4">${years}年間の比較</td></tr>`,
     `<tr><td>住居関連支出の累計</td><td>${simpleMoney(rentCumulative)}</td><td>${simpleCell(a.cumulative,a)}</td><td>${simpleCell(b.cumulative,b)}</td></tr>`,
     `<tr><td>支払った家賃</td><td>${simpleMoney(rentCumulative)}</td><td>―</td><td>―</td></tr>`,

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ライフプランシミュレーション v0.31</title>
+<title>ライフプランシミュレーション v0.33</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,6 +13,7 @@
     <div class="modeSwitch" aria-label="入力モード切替">
       <button type="button" id="simpleModeButton" class="modeButton" onclick="switchLifeplanMode('simple')">簡易入力ver.</button>
       <button type="button" id="detailedModeButton" class="modeButton active" onclick="switchLifeplanMode('detailed')">詳細入力ver.</button>
+      <button type="button" id="savedModeButton" class="modeButton" onclick="switchLifeplanMode('saved')">保存データ</button>
     </div>
   </div>
 </header>
@@ -101,12 +102,6 @@
     
   
     <div class="actions"><button onclick="run()">再計算</button><button class="secondary" onclick="openProposalPreview()">提案書プレビュー</button></div>
-<div class="section"><h2>保存データ</h2>
-      <div class="hint">お客様ごとに保存できます。保存先はこのブラウザ内です。</div>
-      <div id="savedPlanList" class="savedPlanList"></div>
-      <div class="saveActions wide"><button type="button" onclick="saveAsNewPlan()">＋ 新規保存</button><button type="button" class="secondary" onclick="overwriteCurrentPlan()">選択中を上書き</button></div>
-      <div class="saveStatus" id="saveStatus">未保存</div>
-    </div>
 </aside>
   <main class="main">
     <section class="printOnly printReportHead">
@@ -265,6 +260,25 @@
         <div class="simpleComment" id="simpleComment">条件を入力すると、比較結果がここに表示されます。</div>
       </section>
     </main>
+  </div>
+</section>
+
+<section class="savedMode modeSection" id="savedMode" hidden>
+  <div class="savedModeHead">
+    <div><div class="eyebrow">CUSTOMER DATA</div><h2>保存データ</h2><p>詳細入力ver.で入力中の内容を保存・読込できます。顧客名の一覧はこの画面だけに表示されます。</p></div>
+    <div class="savedPrivacy">対面入力中は、この画面を開かない限り顧客名は表示されません。</div>
+  </div>
+  <div class="savedModeGrid">
+    <section class="savedModeCard">
+      <h3>入力中のデータを保存</h3>
+      <p>詳細入力ver.に現在入力されている内容を保存します。</p>
+      <div class="savedModeActions"><button type="button" onclick="saveAsNewPlan()">＋ 新規保存</button><button type="button" class="secondary" onclick="overwriteCurrentPlan()">選択中を上書き</button></div>
+      <div class="saveStatus" id="saveStatus">未保存</div>
+    </section>
+    <section class="savedModeCard savedListCard">
+      <div class="savedListHead"><h3>保存済みデータ</h3><span>このブラウザ内に保存</span></div>
+      <div id="savedPlanList" class="savedPlanList"></div>
+    </section>
   </div>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

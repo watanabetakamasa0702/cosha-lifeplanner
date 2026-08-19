@@ -108,10 +108,26 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
 .simpleTableWrap{overflow:auto}.simpleCompareTable{font-size:12px;min-width:620px}.simpleCompareTable th,.simpleCompareTable td{padding:9px 8px}
 .simpleCompareTable th:first-child,.simpleCompareTable td:first-child{font-weight:700;color:var(--ink)}
 .simpleCompareTable .sectionRow td{background:#f4f6f7;color:var(--navy);font-size:11px;font-weight:900;text-align:left}
+.simpleCompareTable .simpleTableSpacer td{height:16px;padding:0;border:0;background:#fff}
 .simpleCompareTable .inputStatus{color:var(--bad);font-size:11px;font-weight:700}
 .simpleNotice{font-size:10px;line-height:1.6;color:var(--muted);background:#f8f8f7;border-left:3px solid var(--accent);padding:9px 11px;margin-top:12px}
 .simpleComment{background:#f6f7f8;border-radius:15px;padding:14px;line-height:1.75;font-size:13px}
 .simpleComment ul{margin:0;padding-left:20px}.simpleComment li+li{margin-top:5px}
+
+/* 保存データ専用画面 */
+.savedMode{max-width:1080px;margin:0 auto;padding:0 28px 48px}
+.savedModeHead{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow)}
+.savedModeHead h2{font-size:25px;margin:4px 0 5px;color:var(--navy)}
+.savedModeHead p{margin:0;color:var(--muted);font-size:13px}
+.savedPrivacy{max-width:330px;padding:11px 13px;border-radius:13px;background:#f5f6f4;border-left:4px solid var(--accent);color:var(--muted);font-size:11px;line-height:1.6}
+.savedModeGrid{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.savedModeCard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.savedModeCard h3{margin:0;color:var(--navy);font-size:17px}.savedModeCard>p{font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 14px}
+.savedModeActions{display:grid;grid-template-columns:1fr;gap:9px}
+.savedMode .saveStatus{margin-top:12px;text-align:left;padding:9px 10px;background:#f7f8f9;border-radius:10px}
+.savedListHead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px}.savedListHead span{font-size:10px;color:var(--muted)}
+.savedMode .savedPlanList{margin-top:0}.savedMode .savedPlanItem{padding:12px}
 @media(max-width:1150px){.simpleLayout{grid-template-columns:1fr}.simpleScenarioInputs{grid-template-columns:1fr 1fr}}
-@media(max-width:760px){.headerInner,.simpleIntro{align-items:stretch;flex-direction:column}.modeSwitch{width:100%}.modeButton{flex:1}.simpleMode{padding:0 14px 30px}.simpleScenarioInputs,.simpleMonthlyCards{grid-template-columns:1fr}.simpleGrid2{grid-template-columns:1fr}.simpleGrid2 .wide{grid-column:auto}}
-@media print{#simpleMode{display:none!important}.modeSwitch{display:none!important}}
+@media(max-width:820px){.savedModeGrid{grid-template-columns:1fr}.savedModeHead{align-items:stretch;flex-direction:column}.savedPrivacy{max-width:none}}
+@media(max-width:760px){.headerInner,.simpleIntro{align-items:stretch;flex-direction:column}.modeSwitch{width:100%}.modeButton{flex:1;padding-left:8px;padding-right:8px}.simpleMode,.savedMode{padding:0 14px 30px}.simpleScenarioInputs,.simpleMonthlyCards{grid-template-columns:1fr}.simpleGrid2{grid-template-columns:1fr}.simpleGrid2 .wide{grid-column:auto}}
+@media print{#simpleMode,#savedMode{display:none!important}.modeSwitch{display:none!important}}
