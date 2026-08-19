@@ -72,31 +72,50 @@ function setFurnitureRows(items){const list=document.getElementById('furnitureLi
 
 const STORAGE_KEY='coshaLifePlanner_v28_multi';
 let currentPlanId=null;
+let lastEditorMode='detailed';
 function setSaveStatus(msg){const el=document.getElementById('saveStatus'); if(el) el.textContent=msg;}
 function getPlanStore(){
-  try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"plans":[],"currentId":null}');}
-  catch(e){return {plans:[],currentId:null};}
+  try{
+    const store=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{"plans":[],"currentId":null}');
+    store.plans=(store.plans||[]).map(p=>({...p,mode:p.mode||'detailed'}));
+    store.currentIds=store.currentIds||{detailed:store.currentId||null,simple:null};
+    return store;
+  }
+  catch(e){return {plans:[],currentId:null,currentIds:{detailed:null,simple:null}};}
 }
 function setPlanStore(store){localStorage.setItem(STORAGE_KEY, JSON.stringify(store));}
-function collectPlanData(){
+function collectDetailedPlanData(){
   const data={inputs:{}, children:getChildren(), events:getOneTimeEvents(), renovations:getRenovations(), livingStages:getLivingStages(), furniture:getFurniture(), cf:{}};
   document.querySelectorAll('.panel input[id], .panel select[id]').forEach(el=>{data.inputs[el.id]=el.value;});
   document.querySelectorAll('#cfControls input[type=checkbox]').forEach(el=>{data.cf[el.dataset.cf]=el.checked;});
   return data;
 }
-function guessPlanName(){
+function collectSimplePlanData(){
+  const data={inputs:{}};
+  document.querySelectorAll('#simpleMode input[id], #simpleMode select[id]').forEach(el=>{data.inputs[el.id]=el.value;});
+  return data;
+}
+function collectPlanData(mode=lastEditorMode){return mode==='simple'?collectSimplePlanData():collectDetailedPlanData();}
+function guessPlanName(mode=lastEditorMode){
+  if(mode==='simple'){
+    const client=document.getElementById('simpleClientName')?.value?.trim();
+    if(client) return client.endsWith('様')?client:client+'様';
+    return '簡易プラン（名称未設定）';
+  }
   const owner=document.getElementById('ownerName')?.value?.trim();
   if(owner) return owner.endsWith('様')?owner:owner+'様';
   return '名称未設定';
 }
 function saveAsNewPlan(){
-  const name=prompt('保存名を入力してください', guessPlanName());
+  const mode=lastEditorMode;
+  const name=prompt('保存名を入力してください', guessPlanName(mode));
   if(!name) return;
   const store=getPlanStore();
   const id='plan_'+Date.now();
   const now=new Date().toISOString();
-  store.plans.unshift({id,name:name.trim(),createdAt:now,updatedAt:now,data:collectPlanData()});
+  store.plans.unshift({id,name:name.trim(),mode,createdAt:now,updatedAt:now,data:collectPlanData(mode)});
   store.currentId=id;
+  store.currentIds[mode]=id;
   setPlanStore(store);
   currentPlanId=id;
   renderSavedPlans();
@@ -104,10 +123,11 @@ function saveAsNewPlan(){
 }
 function overwriteCurrentPlan(){
   const store=getPlanStore();
-  let id=currentPlanId || store.currentId;
-  let plan=store.plans.find(p=>p.id===id);
+  const mode=lastEditorMode;
+  let id=store.currentIds[mode];
+  let plan=store.plans.find(p=>p.id===id&&p.mode===mode);
   if(!plan){ saveAsNewPlan(); return; }
-  plan.data=collectPlanData();
+  plan.data=collectPlanData(mode);
   plan.updatedAt=new Date().toISOString();
   setPlanStore(store);
   renderSavedPlans();
@@ -117,13 +137,15 @@ function loadPlanById(id){
   const store=getPlanStore();
   const plan=store.plans.find(p=>p.id===id);
   if(!plan){setSaveStatus('保存データが見つかりません。'); return;}
-  applyPlanData(plan.data);
+  const mode=plan.mode||'detailed';
+  if(mode==='simple') applySimplePlanData(plan.data); else applyPlanData(plan.data);
   store.currentId=id;
+  store.currentIds[mode]=id;
   setPlanStore(store);
   currentPlanId=id;
   renderSavedPlans();
   setSaveStatus(`読み込みました：${plan.name}`);
-  switchLifeplanMode('detailed');
+  switchLifeplanMode(mode);
 }
 function deletePlanById(id){
   const store=getPlanStore();
@@ -131,6 +153,7 @@ function deletePlanById(id){
   if(!plan) return;
   if(!confirm(`${plan.name}を削除しますか？`)) return;
   store.plans=store.plans.filter(p=>p.id!==id);
+  Object.keys(store.currentIds||{}).forEach(mode=>{if(store.currentIds[mode]===id)store.currentIds[mode]=null;});
   if(store.currentId===id) store.currentId=store.plans[0]?.id||null;
   setPlanStore(store);
   currentPlanId=store.currentId;
@@ -160,6 +183,10 @@ function applyPlanData(data){
   updatePurchaseType();
   document.getElementById('age')?.setAttribute('data-user-edited','manual');
   run();
+}
+function applySimplePlanData(data){
+  Object.entries(data.inputs||{}).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value;});
+  runSimpleComparison();
 }
 function setChildRows(children){
   const list=document.getElementById('childList');
@@ -198,7 +225,8 @@ function renderSavedPlans(){
   list.innerHTML=store.plans.map(p=>{
     const date=p.updatedAt?new Date(p.updatedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     const selected=p.id===store.currentId?' style="outline:2px solid rgba(184,137,104,.35)"':'';
-    return `<div class="savedPlanItem"${selected}><div><div class="name">${escapeHtml(p.name)}</div><div class="meta">更新：${escapeHtml(date)}</div></div><button type="button" class="secondary" onclick="loadPlanById('${p.id}')">開く</button><button type="button" class="danger" onclick="deletePlanById('${p.id}')">削除</button></div>`;
+    const modeLabel=p.mode==='simple'?'簡易':'詳細';
+    return `<div class="savedPlanItem"${selected}><div><div class="name">${escapeHtml(p.name)} <span class="savedModeBadge ${p.mode}">${modeLabel}</span></div><div class="meta">更新：${escapeHtml(date)}</div></div><button type="button" class="secondary" onclick="loadPlanById('${p.id}')">開く</button><button type="button" class="danger" onclick="deletePlanById('${p.id}')">削除</button></div>`;
   }).join('');
 }
 function escapeHtml(v){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');}
@@ -721,12 +749,15 @@ function switchLifeplanMode(mode){
   document.getElementById('simpleModeButton')?.classList.toggle('active',simple);
   document.getElementById('detailedModeButton')?.classList.toggle('active',detailed);
   document.getElementById('savedModeButton')?.classList.toggle('active',saved);
+  if(simple||detailed) lastEditorMode=mode;
   if(simple) runSimpleComparison();
   if(detailed) run();
   if(saved){
     renderSavedPlans();
     const store=getPlanStore();
     setSaveStatus(store.plans.length?`${store.plans.length}件保存済み`:'未保存');
+    const source=document.getElementById('saveSourceMode');
+    if(source) source.textContent=lastEditorMode==='simple'?'簡易入力ver.':'詳細入力ver.';
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }

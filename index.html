@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ライフプランシミュレーション v0.33</title>
+<title>ライフプランシミュレーション v0.34</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -265,13 +265,13 @@
 
 <section class="savedMode modeSection" id="savedMode" hidden>
   <div class="savedModeHead">
-    <div><div class="eyebrow">CUSTOMER DATA</div><h2>保存データ</h2><p>詳細入力ver.で入力中の内容を保存・読込できます。顧客名の一覧はこの画面だけに表示されます。</p></div>
+    <div><div class="eyebrow">CUSTOMER DATA</div><h2>保存データ</h2><p>簡易入力ver.・詳細入力ver.の内容を保存・読込できます。顧客名の一覧はこの画面だけに表示されます。</p></div>
     <div class="savedPrivacy">対面入力中は、この画面を開かない限り顧客名は表示されません。</div>
   </div>
   <div class="savedModeGrid">
     <section class="savedModeCard">
       <h3>入力中のデータを保存</h3>
-      <p>詳細入力ver.に現在入力されている内容を保存します。</p>
+      <p><b id="saveSourceMode">詳細入力ver.</b>に現在入力されている内容を保存します。</p>
       <div class="savedModeActions"><button type="button" onclick="saveAsNewPlan()">＋ 新規保存</button><button type="button" class="secondary" onclick="overwriteCurrentPlan()">選択中を上書き</button></div>
       <div class="saveStatus" id="saveStatus">未保存</div>
     </section>

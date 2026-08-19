@@ -127,6 +127,7 @@ header{padding:34px 28px 20px;max-width:1280px;margin:auto}.brand{display:flex;a
 .savedMode .saveStatus{margin-top:12px;text-align:left;padding:9px 10px;background:#f7f8f9;border-radius:10px}
 .savedListHead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px}.savedListHead span{font-size:10px;color:var(--muted)}
 .savedMode .savedPlanList{margin-top:0}.savedMode .savedPlanItem{padding:12px}
+.savedModeBadge{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:999px;font-size:10px;line-height:1;font-weight:800;vertical-align:1px;background:#eef2f7;color:var(--navy)}.savedModeBadge.simple{background:#f2e8df;color:#8b5e3c}
 @media(max-width:1150px){.simpleLayout{grid-template-columns:1fr}.simpleScenarioInputs{grid-template-columns:1fr 1fr}}
 @media(max-width:820px){.savedModeGrid{grid-template-columns:1fr}.savedModeHead{align-items:stretch;flex-direction:column}.savedPrivacy{max-width:none}}
 @media(max-width:760px){.headerInner,.simpleIntro{align-items:stretch;flex-direction:column}.modeSwitch{width:100%}.modeButton{flex:1;padding-left:8px;padding-right:8px}.simpleMode,.savedMode{padding:0 14px 30px}.simpleScenarioInputs,.simpleMonthlyCards{grid-template-columns:1fr}.simpleGrid2{grid-template-columns:1fr}.simpleGrid2 .wide{grid-column:auto}}
