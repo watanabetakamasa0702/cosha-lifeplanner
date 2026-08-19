@@ -704,3 +704,126 @@ async function printProposal(){
   w.document.open();w.document.write(doc);w.document.close();
   },150);
 }
+
+/* ===== 簡易入力ver. ===== */
+function switchLifeplanMode(mode){
+  const simple=mode==='simple';
+  const simpleSection=document.getElementById('simpleMode');
+  const detailedSection=document.getElementById('detailedMode');
+  if(simpleSection) simpleSection.hidden=!simple;
+  if(detailedSection) detailedSection.hidden=simple;
+  document.getElementById('simpleModeButton')?.classList.toggle('active',simple);
+  document.getElementById('detailedModeButton')?.classList.toggle('active',!simple);
+  if(simple) runSimpleComparison(); else run();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function simpleNumber(id){
+  const el=document.getElementById(id);
+  if(!el || String(el.value).trim()==='') return 0;
+  const n=parseFloat(el.value);
+  return Number.isFinite(n)?Math.max(0,n):0;
+}
+
+function simpleMoney(value,digits=1){
+  if(!Number.isFinite(value)) return '―';
+  return value.toLocaleString('ja-JP',{minimumFractionDigits:0,maximumFractionDigits:digits})+'万円';
+}
+
+function simpleScenario(prefix,years){
+  const price=simpleNumber(`simple${prefix}Price`);
+  const renovation=simpleNumber(`simple${prefix}Renovation`);
+  const cost=simpleNumber(`simple${prefix}Cost`);
+  const down=simpleNumber(`simple${prefix}Down`);
+  const rate=simpleNumber(`simple${prefix}Rate`);
+  const term=simpleNumber(`simple${prefix}Term`);
+  const maint=simpleNumber(`simple${prefix}Maint`);
+  const tax=simpleNumber(`simple${prefix}Tax`);
+  const insurance=simpleNumber(`simple${prefix}Insurance`);
+  const totalPrice=price+renovation+cost;
+  const borrow=Math.max(0,totalPrice-down);
+  const valid=totalPrice>0 && term>0;
+  const monthlyLoan=valid?loanPayment(borrow,rate,term):0;
+  const monthlyHousing=monthlyLoan+maint+tax/12+insurance/12;
+  const comparisonMonths=Math.max(0,years*12);
+  const loanMonths=Math.min(comparisonMonths,term*12);
+  const balance=valid?loanBalance(borrow,rate,term,loanMonths):0;
+  const principalPaid=valid?Math.max(0,borrow-balance):0;
+  const loanPaid=monthlyLoan*loanMonths;
+  const interestPaid=Math.max(0,loanPaid-principalPaid);
+  const cumulative=down+loanPaid+(maint*comparisonMonths)+(tax*years)+(insurance*years);
+  const name=(document.getElementById(`simple${prefix}Name`)?.value||'').trim()||`物件${prefix}`;
+  return {prefix,name,valid,price,renovation,cost,down,totalPrice,borrow,rate,term,maint,tax,insurance,monthlyLoan,monthlyHousing,balance,principalPaid,interestPaid,cumulative};
+}
+
+function simpleCell(value,valid=true,digits=1){
+  return valid?simpleMoney(value,digits):'―';
+}
+
+function runSimpleComparison(){
+  const years=parseInt(document.getElementById('simpleYears')?.value||'10',10)||10;
+  const income=simpleNumber('simpleIncome');
+  const living=simpleNumber('simpleLiving');
+  const rent=simpleNumber('simpleRent');
+  const age=simpleNumber('simpleAge');
+  const a=simpleScenario('A',years);
+  const b=simpleScenario('B',years);
+  const rentRemainder=income-living-rent;
+  const rentCumulative=rent*12*years;
+
+  const put=(id,text)=>{const el=document.getElementById(id);if(el)el.textContent=text;};
+  put('simpleABorrow',simpleMoney(a.borrow));
+  put('simpleBBorrow',simpleMoney(b.borrow));
+  put('simplePeriodLabel',`${years}年間で比較`);
+  put('simpleAResultName',a.name); put('simpleBResultName',b.name);
+  put('simpleAColumn',a.name); put('simpleBColumn',b.name);
+  put('simpleRentMonthly',simpleMoney(rent));
+  put('simpleAMonthly',simpleCell(a.monthlyHousing,a.valid));
+  put('simpleBMonthly',simpleCell(b.monthlyHousing,b.valid));
+  put('simpleRentRemainder',simpleMoney(rentRemainder));
+  put('simpleARemainder',a.valid?simpleMoney(income-living-a.monthlyHousing):'―');
+  put('simpleBRemainder',b.valid?simpleMoney(income-living-b.monthlyHousing):'―');
+
+  ['simpleRentRemainder','simpleARemainder','simpleBRemainder'].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    const raw=id==='simpleRentRemainder'?rentRemainder:(id==='simpleARemainder'?(a.valid?income-living-a.monthlyHousing:null):(b.valid?income-living-b.monthlyHousing:null));
+    el.classList.toggle('good',raw!==null&&raw>=0); el.classList.toggle('bad',raw!==null&&raw<0);
+  });
+
+  const rows=[
+    `<tr class="sectionRow"><td colspan="4">現在の毎月負担</td></tr>`,
+    `<tr><td>毎月の住居費</td><td>${simpleMoney(rent)}</td><td>${simpleCell(a.monthlyHousing,a.valid)}</td><td>${simpleCell(b.monthlyHousing,b.valid)}</td></tr>`,
+    `<tr><td>生活費を含めた毎月支出</td><td>${simpleMoney(living+rent)}</td><td>${simpleCell(living+a.monthlyHousing,a.valid)}</td><td>${simpleCell(living+b.monthlyHousing,b.valid)}</td></tr>`,
+    `<tr><td>毎月の余裕額</td><td>${simpleMoney(rentRemainder)}</td><td>${a.valid?simpleMoney(income-living-a.monthlyHousing):'―'}</td><td>${b.valid?simpleMoney(income-living-b.monthlyHousing):'―'}</td></tr>`,
+    `<tr class="sectionRow"><td colspan="4">${years}年間の比較</td></tr>`,
+    `<tr><td>住居関連支出の累計</td><td>${simpleMoney(rentCumulative)}</td><td>${simpleCell(a.cumulative,a.valid)}</td><td>${simpleCell(b.cumulative,b.valid)}</td></tr>`,
+    `<tr><td>支払った家賃</td><td>${simpleMoney(rentCumulative)}</td><td>―</td><td>―</td></tr>`,
+    `<tr><td>借入予定額</td><td>―</td><td>${simpleCell(a.borrow,a.valid)}</td><td>${simpleCell(b.borrow,b.valid)}</td></tr>`,
+    `<tr><td>返済した元金</td><td>―</td><td>${simpleCell(a.principalPaid,a.valid)}</td><td>${simpleCell(b.principalPaid,b.valid)}</td></tr>`,
+    `<tr><td>支払った利息</td><td>―</td><td>${simpleCell(a.interestPaid,a.valid)}</td><td>${simpleCell(b.interestPaid,b.valid)}</td></tr>`,
+    `<tr><td>${years}年後のローン残高</td><td>―</td><td>${simpleCell(a.balance,a.valid)}</td><td>${simpleCell(b.balance,b.valid)}</td></tr>`,
+    `<tr><td>ローン完済年齢</td><td>―</td><td>${a.valid&&age?Math.round(age+a.term)+'歳':'―'}</td><td>${b.valid&&age?Math.round(age+b.term)+'歳':'―'}</td></tr>`
+  ];
+  const body=document.getElementById('simpleCompareBody'); if(body)body.innerHTML=rows.join('');
+
+  const points=[];
+  if(a.valid&&b.valid){
+    const monthlyDiff=Math.abs(a.monthlyHousing-b.monthlyHousing);
+    const lower=a.monthlyHousing<=b.monthlyHousing?a:b;
+    points.push(`${lower.name}の毎月の住居費は、もう一方より約${simpleMoney(monthlyDiff)}低い試算です。`);
+  }
+  if(a.valid) points.push(`${a.name}は${years}年間で元金を約${simpleMoney(a.principalPaid)}返済し、ローン残高は約${simpleMoney(a.balance)}となります。`);
+  if(b.valid) points.push(`${b.name}は${years}年間で元金を約${simpleMoney(b.principalPaid)}返済し、ローン残高は約${simpleMoney(b.balance)}となります。`);
+  if(!a.valid&&!b.valid) points.push('物件Aまたは物件Bの価格・返済条件を入力してください。');
+  points.push('購入した不動産の将来価値は計算に含めていないため、支出額だけで購入の有利・不利を断定するものではありません。');
+  const comment=document.getElementById('simpleComment'); if(comment)comment.innerHTML=`<ul>${points.map(p=>`<li>${p}</li>`).join('')}</ul>`;
+}
+
+function initSimpleComparison(){
+  document.querySelectorAll('#simpleMode input,#simpleMode select').forEach(el=>{
+    el.addEventListener('input',runSimpleComparison);
+    el.addEventListener('change',runSimpleComparison);
+  });
+  runSimpleComparison();
+}
+initSimpleComparison();

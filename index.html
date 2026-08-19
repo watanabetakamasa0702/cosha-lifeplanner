@@ -3,14 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ライフプランシミュレーション v0.29</title>
+<title>ライフプランシミュレーション v0.30</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">c</div><div><div class="eyebrow">cosha Life Design</div><h1 class="title">ライフプランシミュレーション</h1><div class="sub">住宅購入後の暮らしを、数字で見える化。</div></div></div>
+  <div class="headerInner">
+    <div class="brand"><div class="logo">c</div><div><div class="eyebrow">cosha Life Design</div><h1 class="title">ライフプランシミュレーション</h1><div class="sub">住宅購入後の暮らしを、数字で見える化。</div></div></div>
+    <div class="modeSwitch" aria-label="入力モード切替">
+      <button type="button" id="simpleModeButton" class="modeButton" onclick="switchLifeplanMode('simple')">簡易入力ver.</button>
+      <button type="button" id="detailedModeButton" class="modeButton active" onclick="switchLifeplanMode('detailed')">詳細入力ver.</button>
+    </div>
+  </div>
 </header>
-<div class="wrap">
+<div class="wrap modeSection" id="detailedMode">
   <aside class="panel">
     <div class="section"><h2>家族構成</h2>
       <div class="grid2">
@@ -181,6 +187,84 @@
       <section class="printOnly printDisclaimer">本資料は入力された条件および想定利回り等に基づく参考シミュレーションです。将来の収入、支出、運用成果、税制、社会保障制度、金利、不動産価値等を保証するものではありません。実際の資金計画は、金融機関・税理士・ファイナンシャルプランナー等の専門家にもご確認ください。</section>
   </main>
 </div>
+
+<section class="simpleMode modeSection" id="simpleMode" hidden>
+  <div class="simpleIntro">
+    <div><div class="eyebrow">FIRST MEETING TOOL</div><h2>住まい方を、シンプルに比較</h2><p>金融資産や将来の不動産価値は含めず、現在の家計と住宅費だけで比較します。</p></div>
+    <div class="simplePeriod"><label for="simpleYears">比較期間</label><select id="simpleYears"><option value="5">5年間</option><option value="10" selected>10年間</option><option value="20">20年間</option></select></div>
+  </div>
+
+  <div class="simpleLayout">
+    <aside class="simpleInputs">
+      <section class="simpleInputCard">
+        <h3>共通条件</h3>
+        <div class="simpleGrid2">
+          <div class="field"><label>お客様名</label><input id="simpleClientName" type="text" placeholder="例：山田 太郎"></div>
+          <div class="field"><label>現在年齢</label><input id="simpleAge" type="number" min="18" max="100" placeholder="例：35"></div>
+          <div class="field"><label>毎月の世帯手取り（万円）</label><input id="simpleIncome" type="number" min="0" step="0.1" placeholder="例：40"></div>
+          <div class="field"><label>生活費／月（万円）</label><input id="simpleLiving" type="number" min="0" step="0.1" placeholder="例：25"></div>
+          <div class="field wide"><label>現在の家賃／月（万円）</label><input id="simpleRent" type="number" min="0" step="0.1" placeholder="例：8"></div>
+        </div>
+      </section>
+
+      <div class="simpleScenarioInputs">
+        <section class="simpleInputCard scenarioA" data-simple-scenario="a">
+          <div class="scenarioHeading"><span>A</span><input id="simpleAName" type="text" placeholder="物件A"></div>
+          <div class="simpleGrid2">
+            <div class="field"><label>物件価格（万円）</label><input id="simpleAPrice" type="number" min="0" step="1"></div>
+            <div class="field"><label>リフォーム費用（万円）</label><input id="simpleARenovation" type="number" min="0" step="1"></div>
+            <div class="field"><label>諸費用（万円）</label><input id="simpleACost" type="number" min="0" step="1"></div>
+            <div class="field"><label>自己資金（万円）</label><input id="simpleADown" type="number" min="0" step="1"></div>
+            <div class="calculatedField wide"><span>借入予定額</span><b id="simpleABorrow">0万円</b></div>
+            <div class="field"><label>金利（%）</label><input id="simpleARate" type="number" min="0" step="0.01"></div>
+            <div class="field"><label>返済期間（年）</label><input id="simpleATerm" type="number" min="1" max="50" step="1"></div>
+            <div class="field"><label>管理費・修繕費／月（万円）</label><input id="simpleAMaint" type="number" min="0" step="0.1"></div>
+            <div class="field"><label>固定資産税／年（万円）</label><input id="simpleATax" type="number" min="0" step="0.1"></div>
+            <div class="field wide"><label>火災保険等／年（万円）</label><input id="simpleAInsurance" type="number" min="0" step="0.1"></div>
+          </div>
+        </section>
+
+        <section class="simpleInputCard scenarioB" data-simple-scenario="b">
+          <div class="scenarioHeading"><span>B</span><input id="simpleBName" type="text" placeholder="物件B"></div>
+          <div class="simpleGrid2">
+            <div class="field"><label>物件価格（万円）</label><input id="simpleBPrice" type="number" min="0" step="1"></div>
+            <div class="field"><label>リフォーム費用（万円）</label><input id="simpleBRenovation" type="number" min="0" step="1"></div>
+            <div class="field"><label>諸費用（万円）</label><input id="simpleBCost" type="number" min="0" step="1"></div>
+            <div class="field"><label>自己資金（万円）</label><input id="simpleBDown" type="number" min="0" step="1"></div>
+            <div class="calculatedField wide"><span>借入予定額</span><b id="simpleBBorrow">0万円</b></div>
+            <div class="field"><label>金利（%）</label><input id="simpleBRate" type="number" min="0" step="0.01"></div>
+            <div class="field"><label>返済期間（年）</label><input id="simpleBTerm" type="number" min="1" max="50" step="1"></div>
+            <div class="field"><label>管理費・修繕費／月（万円）</label><input id="simpleBMaint" type="number" min="0" step="0.1"></div>
+            <div class="field"><label>固定資産税／年（万円）</label><input id="simpleBTax" type="number" min="0" step="0.1"></div>
+            <div class="field wide"><label>火災保険等／年（万円）</label><input id="simpleBInsurance" type="number" min="0" step="0.1"></div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <main class="simpleResults">
+      <section class="simpleResultCard resultOverview">
+        <div class="resultTitle"><div><span>MONTHLY BALANCE</span><h3>毎月の家計比較</h3></div><b id="simplePeriodLabel">10年間で比較</b></div>
+        <div class="simpleMonthlyCards">
+          <div class="simpleMonthlyCard rent"><span>賃貸継続</span><b id="simpleRentMonthly">-</b><small>毎月の余裕額</small><strong id="simpleRentRemainder">-</strong></div>
+          <div class="simpleMonthlyCard a"><span id="simpleAResultName">物件A</span><b id="simpleAMonthly">-</b><small>毎月の余裕額</small><strong id="simpleARemainder">-</strong></div>
+          <div class="simpleMonthlyCard b"><span id="simpleBResultName">物件B</span><b id="simpleBMonthly">-</b><small>毎月の余裕額</small><strong id="simpleBRemainder">-</strong></div>
+        </div>
+      </section>
+
+      <section class="simpleResultCard">
+        <div class="resultTitle"><div><span>RENT OR BUY</span><h3>賃貸継続と購入の比較</h3></div></div>
+        <div class="simpleTableWrap"><table class="simpleCompareTable"><thead><tr><th>比較項目</th><th>賃貸継続</th><th id="simpleAColumn">物件A</th><th id="simpleBColumn">物件B</th></tr></thead><tbody id="simpleCompareBody"></tbody></table></div>
+        <div class="simpleNotice">※購入した不動産の将来価値および売却時の収支は、この比較には含まれていません。</div>
+      </section>
+
+      <section class="simpleResultCard">
+        <div class="resultTitle"><div><span>POINTS</span><h3>比較結果のポイント</h3></div></div>
+        <div class="simpleComment" id="simpleComment">条件を入力すると、比較結果がここに表示されます。</div>
+      </section>
+    </main>
+  </div>
+</section>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="main.js"></script>
 </body>
